@@ -1,0 +1,150 @@
+/* Inventory Premium Styles - Professional & Neat */
+
+/* Gradient Cards - Professional Single-Hue */
+/* Using linear gradients that are subtle and within the same color family */
+.bg-gradient-premium-primary {
+    background: linear-gradient(180deg, #337AB7 0%, #266a9e 100%) !important;
+    color: white !important;
+}
+
+.bg-gradient-premium-success {
+    background: linear-gradient(180deg, #3eb780 0%, #2e9e6a 100%) !important;
+    color: white !important;
+}
+
+.bg-gradient-premium-warning {
+    background: linear-gradient(180deg, #ffca18 0%, #eebb10 100%) !important;
+    color: white !important;
+}
+
+.bg-gradient-premium-danger {
+    background: linear-gradient(180deg, #ff0000 0%, #d90000 100%) !important;
+    color: white !important;
+}
+
+.bg-gradient-premium-info {
+    background: linear-gradient(180deg, #155eef 0%, #104fce 100%) !important;
+    color: white !important;
+}
+
+/* Premium Cards */
+.premium-card {
+    border: none;
+    border-radius: 12px;
+    /* Slightly reduced radius for neater look */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    position: relative;
+    background: white;
+    height: 100%;
+}
+
+.premium-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.premium-card h2,
+.premium-card h5 {
+    color: white !important;
+}
+
+/* Filter Pills */
+.inventory-pill {
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #64748b;
+    background: white;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.inventory-pill:hover {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+
+.inventory-pill.active {
+    background: #337AB7;
+    /* Simple solid color for active state */
+    color: white;
+    border-color: #337AB7;
+    box-shadow: 0 2px 4px rgba(51, 122, 183, 0.3);
+}
+
+/* Search Input Fix */
+.search-input input {
+    padding-left: 45px !important;
+    height: 45px;
+    border-radius: 50px !important;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+}
+
+.search-input .btn-searchset {
+    position: absolute;
+    left: 10px;
+    /* Adjusted position */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    background: transparent !important;
+    border: none;
+    font-size: 1.1rem;
+}
+
+/* Stock Health Bar */
+.progress-thin {
+    height: 6px;
+    border-radius: 10px;
+    background-color: #f1f5f9;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+/* Status Steps */
+.transfer-status-step {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.transfer-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background: #cbd5e1;
+    position: relative;
+}
+
+.transfer-status-dot.completed {
+    background: #3eb780;
+}
+
+.transfer-status-dot.pending {
+    background: #ffca18;
+}
+
+/* Table Improvements */
+.table-list-card {
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    /* Subtle border for neatness */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.table-responsive {
+    border-radius: 12px;
+}
