@@ -478,7 +478,6 @@ const TodoList = lazy(
 );
 const PagesList = lazy(() => import("../feature-module/content/pages"));
 const AllBlogs = lazy(() => import("../feature-module/content/blog/allBlogs"));
-// const Projects = lazy(() => import("../feature-module/application/projects"));
 const Searchlist = lazy(
   () => import("../feature-module/application/searchlist")
 );
