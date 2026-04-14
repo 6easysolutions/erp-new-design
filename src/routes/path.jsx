@@ -268,10 +268,6 @@ const FileManager = lazy(
 );
 const Profile = lazy(() => import("../feature-module/pages/profile"));
 const Signin = lazy(() => import("../feature-module/pages/authentication/login/signin"));
-// const SigninTwo = lazy(() => import("../feature-module/pages/authentication/login/signinTwo"));
-// const SigninThree = lazy(
-//   () => import("../feature-module/pages/authentication/login/signinThree")
-// );
 const RegisterTwo = lazy(
   () => import("../feature-module/pages/authentication/register/registerTwo")
 );
