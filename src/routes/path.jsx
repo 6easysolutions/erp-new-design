@@ -203,7 +203,6 @@ const PurchaseReport = lazy(
 const InventoryReport = lazy(
   () => import("../feature-module/Reports/inventoryreport")
 );
-// const Invoicereport = lazy(() => import("../feature-module/Reports/invoicereport"));
 const SupplierReport = lazy(
   () => import("../feature-module/Reports/supplierreport")
 );
@@ -268,10 +267,6 @@ const FileManager = lazy(
 );
 const Profile = lazy(() => import("../feature-module/pages/profile"));
 const Signin = lazy(() => import("../feature-module/pages/authentication/login/signin"));
-// const SigninTwo = lazy(() => import("../feature-module/pages/authentication/login/signinTwo"));
-// const SigninThree = lazy(
-//   () => import("../feature-module/pages/authentication/login/signinThree")
-// );
 const RegisterTwo = lazy(
   () => import("../feature-module/pages/authentication/register/registerTwo")
 );
@@ -356,7 +351,6 @@ const LeaveTypes = lazy(() => import("../feature-module/hrm/leavetypes"));
 const ProductDetail = lazy(
   () => import("../feature-module/inventory/productdetail")
 );
-// const Units = lazy(()=>import('../feature-module/inventory/units'))
 const TaxRates = lazy(
   () => import("../feature-module/settings/financialsettings/taxrates")
 );
@@ -478,7 +472,6 @@ const TodoList = lazy(
 );
 const PagesList = lazy(() => import("../feature-module/content/pages"));
 const AllBlogs = lazy(() => import("../feature-module/content/blog/allBlogs"));
-// const Projects = lazy(() => import("../feature-module/application/projects"));
 const Searchlist = lazy(
   () => import("../feature-module/application/searchlist")
 );
@@ -1640,13 +1633,6 @@ export const authRoutes = [
     element: <InventoryReport />,
     route: Route
   },
-  // {
-  //   id: 93,
-  //   path: routes.invoicereport,
-  //   name: "invoicereport",
-  //   element: <Invoicereport />,
-  //   route: Route,
-  // },
   {
     id: 94,
     path: routes.supplierreport,
@@ -2257,12 +2243,6 @@ export const authRoutes = [
     element: <PagesList />,
     route: Route
   },
-  // {
-  //   path: routes.projects,
-  //   name: "projects",
-  //   element: <Projects />,
-  //   route: Route
-  // },
   {
     id: 152,
     path: routes.allBlogs,
@@ -2971,20 +2951,6 @@ export const unAuthRoutes = [
     element: <Signin />,
     route: Route
   },
-  // {
-  //   id: 2,
-  //   path: routes.signintwo,
-  //   name: "signintwo",
-  //   element: <SigninTwo />,
-  //   route: Route
-  // },
-  // {
-  //   id: 3,
-  //   path: routes.signinthree,
-  //   name: "signinthree",
-  //   element: <SigninThree />,
-  //   route: Route
-  // },
   {
     id: 4,
     path: routes.register,
