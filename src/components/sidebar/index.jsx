@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarData } from "../../core/json/siderbar_data";
-// import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { all_routes } from "../../routes/all_routes";
 import { customer15, logo, logoSmall, logoWhite } from "../../utils/imagepath";
@@ -9,7 +8,6 @@ const Sidebar = () => {
   const route = all_routes;
 
   const Location = useLocation();
-  // const { t } = useTranslation();
 
   const [subOpen, setSubopen] = useState("");
   const [subsidebar, setSubsidebar] = useState("");
@@ -211,7 +209,6 @@ const Sidebar = () => {
                                 <i className={`ti ti-${title.icon} me-2`}></i>
                                 <span className="custom-active-span">
                                   {title?.label}
-                                  {/* {t()} */}
                                 </span>
                                 {title?.submenu && (
                                   <span className="menu-arrow" />
@@ -303,7 +300,6 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      {/* <CollapsedSidebar /> */}
     </div>
   );
 };
