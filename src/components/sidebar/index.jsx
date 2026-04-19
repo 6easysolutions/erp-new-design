@@ -209,7 +209,6 @@ const Sidebar = () => {
                                 <i className={`ti ti-${title.icon} me-2`}></i>
                                 <span className="custom-active-span">
                                   {title?.label}
-                                  {/* {t()} */}
                                 </span>
                                 {title?.submenu && (
                                   <span className="menu-arrow" />
@@ -301,7 +300,6 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      {/* <CollapsedSidebar /> */}
     </div>
   );
 };
