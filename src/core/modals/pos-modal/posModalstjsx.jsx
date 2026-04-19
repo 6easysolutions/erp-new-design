@@ -42,7 +42,13 @@ const PosModals = () => {
 
   const handleSolve = () => {
     try {
-      setInput(eval(input).toString()); // Evaluates the expression safely
+      if (/^[0-9+\-*/%. ]+$/.test(input)) {
+        // eslint-disable-next-line no-new-func
+        const result = new Function("return " + input)();
+        setInput(result.toString());
+      } else {
+        setInput("Error");
+      }
     } catch (error) {
       setInput("Error");
     }
