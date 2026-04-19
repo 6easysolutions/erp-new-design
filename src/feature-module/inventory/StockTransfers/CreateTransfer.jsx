@@ -69,7 +69,9 @@ const LoadItemsModal = ({ onClose, onAddItems, alreadyAddedIds = [], sourceStore
     fetchProducts();
   }, [debouncedSearch, sourceStore]);
 
-  const isSelected = (id) => selected.some((p) => p.id === id);
+  const selectedIds = useMemo(() => new Set(selected.map((p) => p.id)), [selected]);
+
+  const isSelected = (id) => selectedIds.has(id);
   const allVisibleSelected = products.length > 0 && products.every((p) => isSelected(p.id));
 
   const toggleItem = (product) => {
@@ -82,10 +84,14 @@ const LoadItemsModal = ({ onClose, onAddItems, alreadyAddedIds = [], sourceStore
 
   const toggleSelectAll = () => {
     if (allVisibleSelected) {
-      setSelected((prev) => prev.filter((p) => !products.some((f) => f.id === p.id)));
+      const productIds = new Set(products.map((p) => p.id));
+      setSelected((prev) => prev.filter((p) => !productIds.has(p.id)));
     } else {
-      const toAdd = products.filter((p) => !isSelected(p.id));
-      setSelected((prev) => [...prev, ...toAdd]);
+      setSelected((prev) => {
+        const prevIds = new Set(prev.map((p) => p.id));
+        const toAdd = products.filter((p) => !prevIds.has(p.id));
+        return [...prev, ...toAdd];
+      });
     }
   };
 
