@@ -306,6 +306,15 @@ const Pos4 = () => {
 
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
 
+  // ⚡ PERFORMANCE OPTIMIZATION: Memoize cart items into a Map
+  // This reduces the O(N*M) lookup in the product render loop to O(N+M)
+  // N = storeProducts.length, M = cart.length
+  const cartItemsMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
   // ==================== API FUNCTIONS ====================
 
   /**
@@ -920,8 +929,9 @@ const Pos4 = () => {
                       {storeProducts.length > 0 ? (
                         <div className="row g-2">
                           {storeProducts.map((product) => {
-                            const isInCart = cart.some((item) => item.id === product.id);
-                            const cartItem = cart.find((item) => item.id === product.id);
+                            // ⚡ PERFORMANCE OPTIMIZATION: O(1) lookup instead of O(M)
+                            const cartItem = cartItemsMap.get(product.id);
+                            const isInCart = !!cartItem;
 
                             return (
                               <div
