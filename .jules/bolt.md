@@ -1,0 +1,4 @@
+## 2024-05-14 - React Debounce Memoization
+
+**Learning:** When using `debounce` or `throttle` directly inside a React functional component's body, the debounced function (and its internal closure containing the `timeout` variable) is recreated on *every render*. This means if a re-render occurs between rapid key presses (e.g., due to updating a search query state or a loading spinner state in a parent), the timeout from the previous render is lost, causing the callback to be fired multiple times incorrectly. The `SearchFromApi` component was doing this, leading to potential duplicate API calls when typing in a table search field.
+**Action:** Always wrap debounced or throttled functions in `useMemo` (or `useCallback`) with appropriate dependency arrays when declaring them inside functional components to ensure their internal timeout closures persist across re-renders.
