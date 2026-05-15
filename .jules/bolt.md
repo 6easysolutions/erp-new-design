@@ -1,0 +1,3 @@
+## 2024-05-15 - Replace O(N²) nested `.find()` with O(N) hash map lookups in `useMemo`
+**Learning:** In lists combining data from multiple API endpoints (like products + categories/brands), using `.find()` inside a `.map()` creates an O(N*M) time complexity bottleneck. This codebase frequently renders large tables where mapping related data in `useMemo` is common.
+**Action:** When mapping array data against multiple lookup arrays (dropdowns/references) inside a `useMemo`, always pre-compute `Map` objects (e.g., `new Map(arr.map(x => [x.id, x.name]))`) first to achieve O(1) lookups, reducing overall complexity to O(N+M).
