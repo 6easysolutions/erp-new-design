@@ -176,19 +176,24 @@ const ProductsList = () => {
 
   // -------------------- Map product data using dropdowns --------------------
   const mappedProducts = useMemo(() => {
+    // ⚡ Bolt: Replaced O(n^2) nested array .find() with O(n) hash map lookups
+    // Impact: Significantly reduces UI blocking time when mapping large product arrays
+    // with large dropdown lists.
+
+    // Pre-compute maps for O(1) lookups
+    const categoryMap = new Map();
+    dropdowns.categories.forEach(c => categoryMap.set(c.id, c.name));
+
+    const subcategoryMap = new Map();
+    dropdowns.subcategories.forEach(s => subcategoryMap.set(s.id, s.name));
+
+    const brandMap = new Map();
+    dropdowns.brands.forEach(b => brandMap.set(b.id, b.name));
+
     // Helper to find name by ID
-    const getCategoryName = (id) => {
-      const cat = dropdowns.categories.find((c) => c.id === id);
-      return cat ? cat.name : "N/A";
-    };
-    const getSubcategoryName = (id) => {
-      const sub = dropdowns.subcategories.find((s) => s.id === id);
-      return sub ? sub.name : "N/A";
-    };
-    const getBrandName = (id) => {
-      const brand = dropdowns.brands.find((b) => b.id === id);
-      return brand ? brand.name : "N/A";
-    };
+    const getCategoryName = (id) => categoryMap.get(id) || "N/A";
+    const getSubcategoryName = (id) => subcategoryMap.get(id) || "N/A";
+    const getBrandName = (id) => brandMap.get(id) || "N/A";
 
     return products.map((item) => ({
       id: item.id,
