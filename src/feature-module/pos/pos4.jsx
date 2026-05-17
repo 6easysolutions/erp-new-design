@@ -721,6 +721,13 @@ const Pos4 = () => {
     return weightOptions.find(opt => opt.value === weightScale) || null;
   }, [weightOptions, weightScale]);
 
+  // Bolt Optimization: Replace O(N) cart search with O(1) Map lookup
+  // This reduces the complexity of rendering the product grid from O(N*M) to O(N+M)
+  // Expected Impact: Faster rendering when store has many products and cart has many items
+  const cartItemMap = useMemo(() => {
+    return new Map(cart.map(item => [item.id, item]));
+  }, [cart]);
+
   // ==================== LIFECYCLE HOOKS ====================
 
   useEffect(() => {
@@ -920,8 +927,9 @@ const Pos4 = () => {
                       {storeProducts.length > 0 ? (
                         <div className="row g-2">
                           {storeProducts.map((product) => {
-                            const isInCart = cart.some((item) => item.id === product.id);
-                            const cartItem = cart.find((item) => item.id === product.id);
+                            // O(1) lookup instead of O(N) lookup from array methods
+                            const cartItem = cartItemMap.get(product.id);
+                            const isInCart = !!cartItem;
 
                             return (
                               <div
