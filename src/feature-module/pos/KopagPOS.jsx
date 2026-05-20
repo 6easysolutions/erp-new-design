@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "../../KopagPOS.css";
 
@@ -189,9 +189,16 @@ const KopagPOS = () => {
     setCart([]);
   };
 
-  const isItemInCart = (itemId) => {
-    return cart.some(item => item.id === itemId);
-  };
+  // ⚡ Bolt Performance Optimization: Convert O(N*M) loop inside render to O(N) lookup
+  const cartItemMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
+  const isItemInCart = useCallback((itemId) => {
+    return cartItemMap.has(itemId);
+  }, [cartItemMap]);
 
   return (
     <div className="kopag-pos-container page-wrapper">
