@@ -1,0 +1,3 @@
+## 2024-05-18 - Memoizing heavily repeated independent components
+**Learning:** The `CartCounter` component is used over 40 times within the `Pos` component (`src/feature-module/pos/pos.jsx`). Without `React.memo`, any state change in the parent `Pos` component (like switching tabs or toggling alerts) causes all 40+ `CartCounter` instances to unnecessarily re-render, despite them managing their own internal state and not receiving changing props.
+**Action:** Apply `React.memo` to independent, frequently repeated UI components to prevent expensive cascading re-renders when parent components update.
