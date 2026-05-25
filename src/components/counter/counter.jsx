@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, memo } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Tooltip } from "primereact/tooltip";
@@ -70,4 +70,9 @@ const CartCounter = () => {
 CartCounter.propTypes = {
   defaultValue: PropTypes.any,
 };
-export default CartCounter;
+
+// ⚡ Bolt Performance Optimization:
+// Wrap CartCounter in React.memo() to prevent unnecessary re-renders.
+// This component is rendered >40 times in POS lists and should not
+// re-render when parent state (like showAlert) changes.
+export default memo(CartCounter);
