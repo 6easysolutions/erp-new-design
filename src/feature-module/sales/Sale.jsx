@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { URLS } from '../../Urls';
+import { debounce } from '../../utils/debounce';
 
 const Sale = () => {
     const [saleMode, setSaleMode] = useState('cash'); // 'cash' | 'credit' | 'return'
@@ -48,37 +49,38 @@ const Sale = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Search API call
-    const fetchSearchResults = async (query) => {
-        if (!query.trim()) {
-            setSearchResults([]);
-            setShowDropdown(false);
-            return;
-        }
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await axios.post(`${URLS.SearchByStore}?searchQuery=${query}`, {}, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+    // Search API call with debounce to avoid making a request for every keystroke
+    const debouncedFetchSearchResults = useRef(
+        debounce(async (query) => {
+            if (!query.trim()) {
+                setSearchResults([]);
+                setShowDropdown(false);
+                return;
+            }
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await axios.post(`${URLS.SearchByStore}?searchQuery=${query}`, {}, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.data && response.data.data) {
+                    setSearchResults(response.data.data);
+                    setShowDropdown(true);
+                } else {
+                    setSearchResults([]);
                 }
-            });
-            if (response.data && response.data.data) {
-                setSearchResults(response.data.data);
-                setShowDropdown(true);
-            } else {
+            } catch (error) {
+                console.error('Error fetching search results:', error);
                 setSearchResults([]);
             }
-        } catch (error) {
-            console.error('Error fetching search results:', error);
-            setSearchResults([]);
-        }
-    };
+        }, 500)
+    ).current;
 
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setItemSearch(value);
-        // Add a small debounce or direct call (direct for now)
-        fetchSearchResults(value);
+        debouncedFetchSearchResults(value);
     };
 
     const handleSelectProduct = (product) => {
