@@ -1,0 +1,3 @@
+## 2024-10-09 - Unmemoized filtering of static data in render functions
+**Learning:** Found an anti-pattern specific to this codebase: filtering large datasets (like `leavedata`, `pageDataTablesData`) synchronously inside the component's render function (e.g., in `data-tables.jsx`, `leavesemployee.jsx`, `holidays.jsx`). This leads to performance degradation since the dataset is re-evaluated on every component render (e.g., during unrelated state changes like pagination or toggling dropdowns).
+**Action:** When working on array-based filtering, ensure it's wrapped in `useMemo` to prevent unnecessary performance overhead.
