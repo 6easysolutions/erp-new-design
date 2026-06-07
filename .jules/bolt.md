@@ -1,0 +1,3 @@
+## 2025-02-27 - Widespread Synchronous Filtering Anti-Pattern
+**Learning:** The codebase contains a widespread anti-pattern where large static datasets (often loaded from JSON files) are filtered synchronously inside component render functions without memoization. E.g., `const filteredData = data.filter(...)`. This causes O(N*M) filtering operations on every render, even for unrelated state updates (like toggling filters or date pickers).
+**Action:** When working on components with complex local state and large static datasets, proactively check for and wrap repetitive array filtering with `useMemo` to prevent performance degradation.
