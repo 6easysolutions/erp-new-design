@@ -1,0 +1,3 @@
+## 2025-02-27 - Unmemoized Array Filtering Anti-Pattern
+**Learning:** A prevalent anti-pattern exists in this codebase where large static datasets (often from JSON files) are filtered synchronously inside component render functions without memoization. E.g. `const filteredData = data.filter(...)`. This causes performance degradation during unrelated component re-renders (like page changes or minor state updates).
+**Action:** Always wrap repetitive array filtering operations with `useMemo` to prevent performance degradation during unrelated component re-renders. Use the relevant state (e.g. `searchText`) and the dataset as dependencies.
