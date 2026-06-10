@@ -1,0 +1,3 @@
+## 2024-05-18 - Unmemoized Render Values Re-evaluation Pattern
+**Learning:** Found a pattern of executing heavy array methods (like `.find()` or `.filter()`) continuously inside component bodies during render iterations, sometimes nested inside long loops over JSX nodes. This occurs particularly frequently in dashboard views dealing with list operations.
+**Action:** When finding inline operations such as `() => array.find()`, directly refactor into `const value = useMemo(...)` to avoid costly O(N) array traversals per-render. Remove the invocation parens `()` in the JSX when converting from inline function to memoized variable.
