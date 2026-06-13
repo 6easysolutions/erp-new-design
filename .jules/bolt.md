@@ -1,0 +1,3 @@
+## 2024-05-17 - React Component Sync Filter Anti-pattern
+**Learning:** Found a common anti-pattern in the codebase where large static datasets (like those loaded from JSON) are filtered synchronously during the component's render function (e.g. `const filteredData = data.filter(...)`). This operation block the main thread and runs on every re-render, degrading performance especially when the component handles lots of unrelated state (like toggles, dates, dropdowns).
+**Action:** Always wrap repetitive dataset filtering with `useMemo` (e.g., `const filteredData = useMemo(() => data.filter(...), [data, searchTerms])`). Search for and address this pattern during codebase optimizations.
