@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { leavedata } from "../../core/json/leavesdata";
 import AddHolidays from "../../core/modals/hrm/addholidays";
@@ -22,13 +22,19 @@ const Holidays = () => {
   const handleSearch = (value) => {
     setSearchQuery(value);
   };
-  const filteredData = datas.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+
+  // ⚡ Bolt Performance Optimization:
+  // Memoizing the filtered dataset prevents expensive O(N*M) string matching
+  // operations from running on every component re-render (e.g. if other state changes).
+  const filteredData = useMemo(() => {
+    return datas.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).
+        toLowerCase().
+        includes(searchText.toLowerCase());
+      });
     });
-  });
+  }, [datas, searchText]);
 
   const columns = [
   {
