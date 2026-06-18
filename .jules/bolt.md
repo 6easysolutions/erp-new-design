@@ -1,0 +1,3 @@
+## 2026-06-18 - [Synchronous Rendering Data Filtering Anti-Pattern]
+**Learning:** Found a prevalent anti-pattern in the codebase where large static datasets (often loaded from JSON) are filtered synchronously inside component render functions without memoization. This results in an O(n*m) re-computation on every single re-render, leading to significant main-thread blocking and UI jank, especially when rendering large tables like in `saleslist.jsx`.
+**Action:** Always inspect array filtering operations (e.g., `.filter(...)`) applied to top-level or static dataset dependencies. Wrap these with `useMemo` and appropriate dependency arrays to ensure expensive operations are only executed when search terms or the underlying datasets actually change.
