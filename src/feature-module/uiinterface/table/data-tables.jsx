@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../routes/all_routes";
 import { pageDataTablesData } from "../../../core/json/pageDataTables";
@@ -51,13 +51,14 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = data.filter((entry) => {
+  // ⚡ Bolt: Memoize filtered data to prevent re-filtering on unrelated re-renders
+  const filteredData = useMemo(() => data.filter((entry) => {
     return Object.keys(entry).some((key) => {
       return String(entry[key]).
       toLowerCase().
       includes(searchText.toLowerCase());
     });
-  });
+  }), [data, searchText]);
   return (
     <div>
       <div className="page-wrapper">
