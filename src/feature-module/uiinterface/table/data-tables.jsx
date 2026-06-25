@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../routes/all_routes";
 import { pageDataTablesData } from "../../../core/json/pageDataTables";
@@ -51,13 +51,15 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = data.filter((entry) => {
+  // ⚡ Bolt: Use useMemo to cache the filtered table data. This avoids recalculating the array
+  // filtering on every render cycle when other unrelated state changes occur.
+  const filteredData = useMemo(() => data.filter((entry) => {
     return Object.keys(entry).some((key) => {
       return String(entry[key]).
       toLowerCase().
       includes(searchText.toLowerCase());
     });
-  });
+  }), [data, searchText]);
   return (
     <div>
       <div className="page-wrapper">
