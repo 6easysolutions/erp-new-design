@@ -1,0 +1,4 @@
+
+## 2024-05-18 - [O(N*M) Redundant String Operations in Data Tables]
+**Learning:** The codebase has a widespread anti-pattern across many modules (e.g., DataTables, LeavesEmployee, Holidays, SalesList) where large datasets are filtered synchronously during every render using `data.filter(...)`. Inside this filter, there is typically a nested loop `Object.keys(entry).some(...)`, and inside *that*, `searchText.toLowerCase()` is redundantly evaluated. This results in O(N*M) redundant string operations (N = rows, M = columns) per render, even for unrelated state changes.
+**Action:** Always extract static transformations (like `searchText.toLowerCase()`) outside the loops and wrap the entire filtering logic in `useMemo` with appropriate dependencies when encountering this pattern in list/table components across the repository.

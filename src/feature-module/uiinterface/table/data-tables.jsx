@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../routes/all_routes";
 import { pageDataTablesData } from "../../../core/json/pageDataTables";
@@ -51,13 +51,19 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = data.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  // ⚡ Bolt: Memoize filtering to prevent O(N*M) calculation on unrelated re-renders
+  // Extracted toLowerCase() to prevent redundant operations in nested loop
+  const filteredData = useMemo(() => {
+    if (!searchText) return data;
+
+    const lowerSearch = searchText.toLowerCase();
+    return data.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearch);
+      });
     });
-  });
+  }, [data, searchText]);
+
   return (
     <div>
       <div className="page-wrapper">
