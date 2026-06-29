@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../routes/all_routes";
 import { pageDataTablesData } from "../../../core/json/pageDataTables";
@@ -51,13 +51,22 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = data.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  /*
+   * ⚡ Bolt Performance Optimization:
+   * 1. Added useMemo to prevent re-calculating the filter on every render.
+   * 2. Hoisted searchText.toLowerCase() out of the inner loop to avoid O(N*M) redundant string operations.
+   * Impact: Significantly reduces main thread blocking during non-search re-renders and speeds up search typing on large datasets.
+   */
+  const filteredData = useMemo(() => {
+    const lowerSearch = searchText.toLowerCase();
+    if (!lowerSearch) return data;
+
+    return data.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearch);
+      });
     });
-  });
+  }, [data, searchText]);
   return (
     <div>
       <div className="page-wrapper">
