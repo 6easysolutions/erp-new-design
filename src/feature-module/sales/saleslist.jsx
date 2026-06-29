@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { saleslist } from "../../core/json/saleslistdata";
 import PrimeDataTable from "../../components/data-table";
@@ -59,13 +59,23 @@ const SalesList = () => {
     setSearchText(e.target.value);
   };
   const [searchText, setSearchText] = useState("");
-  const filteredData = saleslistdata.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+
+  /*
+   * ⚡ Bolt Performance Optimization:
+   * 1. Added useMemo to prevent re-calculating the filter on every render.
+   * 2. Hoisted searchText.toLowerCase() out of the inner loop to avoid O(N*M) redundant string operations.
+   * Impact: Significantly reduces main thread blocking during non-search re-renders and speeds up search typing on large datasets.
+   */
+  const filteredData = useMemo(() => {
+    const lowerSearch = searchText.toLowerCase();
+    if (!lowerSearch) return saleslistdata;
+
+    return saleslistdata.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearch);
+      });
     });
-  });
+  }, [saleslistdata, searchText]);
   const oldandlatestvalue = [
   { value: "Sort by Date", label: "Sort by Date" },
   { value: "07 09 23", label: "07 09 23" },
