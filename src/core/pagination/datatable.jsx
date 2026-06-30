@@ -11,11 +11,13 @@ const Datatable = ({ props, columns, dataSource }) => {
 
   const handleSearch = (value) => {
     setSearchText(value);
-    const filteredData = dataSource.filter((record) =>
-    Object.values(record).some((field) =>
-    String(field).toLowerCase().includes(value.toLowerCase())
-    )
-    );
+    // ⚡ Bolt: extract value.toLowerCase() outside the filter loop to avoid redundant operations
+    const searchLower = value.toLowerCase();
+    const filteredData = dataSource.filter((record) => {
+      return Object.values(record).some((field) =>
+        String(field).toLowerCase().includes(searchLower)
+      );
+    });
     setFilteredDataSource(filteredData);
   };
   const rowSelection = {
