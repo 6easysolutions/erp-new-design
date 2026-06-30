@@ -59,13 +59,15 @@ const SalesList = () => {
     setSearchText(e.target.value);
   };
   const [searchText, setSearchText] = useState("");
-  const filteredData = saleslistdata.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  // ⚡ Bolt: wrap in useMemo and extract searchText.toLowerCase() to avoid O(N*M) redundant operations
+  const filteredData = useMemo(() => {
+    const searchLower = searchText.toLowerCase();
+    return saleslistdata.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(searchLower);
+      });
     });
-  });
+  }, [saleslistdata, searchText]);
   const oldandlatestvalue = [
   { value: "Sort by Date", label: "Sort by Date" },
   { value: "07 09 23", label: "07 09 23" },
