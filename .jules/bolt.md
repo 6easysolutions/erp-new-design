@@ -1,0 +1,3 @@
+## 2026-07-03 - Unmemoized Filtering of Static Data Anti-pattern
+**Learning:** The codebase has a prevalent anti-pattern where static JSON data arrays are synchronously filtered inside component render functions (e.g., `const filteredData = data.filter(...)`). Additionally, redundant lowercasing (like `searchText.toLowerCase()`) happens inside O(N*M) loops. This causes unnecessary performance degradation during any unrelated state change or re-render.
+**Action:** Always wrap repetitive array filtering operations with `useMemo` and extract invariant calculations (like lowercasing the search text) outside of the inner `filter` / `some` loops to prevent O(N*M) re-evaluations.
