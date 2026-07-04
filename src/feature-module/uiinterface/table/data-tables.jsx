@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../routes/all_routes";
 import { pageDataTablesData } from "../../../core/json/pageDataTables";
@@ -51,13 +51,19 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = data.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  // ⚡ Bolt Performance Optimization:
+  // 1. Memoized the filtering operation to prevent re-running on every render unless `data` or `searchText` changes.
+  // 2. Extracted `searchText.toLowerCase()` outside of the loop to avoid redundant O(N*M) string allocations.
+  const filteredData = useMemo(() => {
+    const lowercasedSearchText = searchText.toLowerCase();
+    return data.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key])
+          .toLowerCase()
+          .includes(lowercasedSearchText);
+      });
     });
-  });
+  }, [data, searchText]);
   return (
     <div>
       <div className="page-wrapper">
