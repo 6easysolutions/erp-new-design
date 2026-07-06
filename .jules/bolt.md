@@ -1,0 +1,3 @@
+## 2024-05-24 - O(N*M) Filtering Anti-Pattern in React Render Loop
+**Learning:** Found a prevalent codebase anti-pattern: synchronously filtering large datasets (e.g., `subCategoriesData`) directly inside the component render function. Even worse, the invariant filter string (`searchTerm.toLowerCase()`) is recalculated on every iteration inside the loop. This causes unnecessary performance degradation, as the operation O(N*M) re-evaluates entirely whenever ANY unrelated state change triggers a component re-render.
+**Action:** Always wrap repetitive filtering logic in `useMemo()` and extract invariants (like `.toLowerCase()`) OUTSIDE the loop.
