@@ -1,0 +1,3 @@
+## 2024-07-07 - Prevalent Filtering Anti-pattern
+**Learning:** Found a systemic anti-pattern across multiple datatable components (e.g., `data-tables.jsx`, `saleslist.jsx`, `holidays.jsx`, etc) where large static datasets are synchronously filtered inside component render functions without memoization. The `.toLowerCase()` operation is executed inside the nested loop evaluating every cell of every row (O(N*M) time complexity) on every render.
+**Action:** Always wrap repetitive array filtering operations with `useMemo` and extract redundant operations like `searchText.toLowerCase()` outside of the nested `.filter()` and `.some()` loops to execute in O(1) time. Apply this fix systematically when encountered.
