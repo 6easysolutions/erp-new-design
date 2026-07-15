@@ -1,3 +1,3 @@
-## 2024-05-10 - O(N*M) to O(N+M) Render Loop Optimization
-**Learning:** Found an O(N*M) nested loop inside the `storeProducts.map` render loop in `pos4.jsx`, where `cart.some` and `cart.find` were called for every product rendered. With large inventories and carts, this synchronous render blocks the main thread.
-**Action:** Always memoize deeply nested array lookups into a `Map` (using `useMemo`) before entering a `.map` render loop to convert O(M) searches into O(1) lookups.
+## 2026-07-08 - Identified Inefficient Array Filtering Pattern
+**Learning:** The codebase has a prevalent anti-pattern of filtering large static datasets synchronously inside component render functions without memoization (e.g. `data.filter(...)`). It additionally compounds the issue by performing redundant operations, such as extracting keys and repeatedly evaluating `searchText.toLowerCase()` inside inner loops, leading to O(N*M) redundant string conversions.
+**Action:** Always wrap array filtering operations with `useMemo` to prevent performance degradation during unrelated component re-renders. Furthermore, extract redundant string manipulations (like `toLowerCase()`) outside of the filter/loop execution logic to avoid unnecessary re-evaluation.
