@@ -2,11 +2,9 @@ import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router';
-
 const AllMasters = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
-
     const mastersData = [
         {
             id: 1,
@@ -153,20 +151,16 @@ const AllMasters = () => {
             route: '/uom-types'
         }
     ];
-
     const filteredMasters = useMemo(() => {
         if (!searchTerm.trim()) return mastersData;
-
         return mastersData.filter(master =>
             master.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             master.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [searchTerm, mastersData]);
-
     const handleCardClick = (route) => {
         navigate(route);
     };
-
     return (
         <div className="page-wrapper" style={{ paddingTop: '80px', minHeight: '100vh' }}>
             <div className="container-fluid px-4" style={{ maxWidth: '1400px' }}>
@@ -178,7 +172,6 @@ const AllMasters = () => {
                         </h2>
                     </div>
                 </div>
-
                 {/* Perfectly-Sized Masters Grid */}
                 <div className="row g-3">
                     {filteredMasters.length > 0 ? (
@@ -213,12 +206,10 @@ const AllMasters = () => {
                                             <i className="bi bi-arrow-right-short master-arrow"
                                                 style={{ fontSize: '28px', color: master.iconColor, marginTop: '-6px' }}></i>
                                         </div>
-
                                         {/* Title */}
                                         <h6 className="mb-2 fw-semibold" style={{ fontSize: '15px', color: '#1e293b', lineHeight: '1.3' }}>
                                             {master.name}
                                         </h6>
-
                                         {/* Description */}
                                         <p className="text-muted mb-0" style={{ fontSize: '12px', lineHeight: '1.4' }}>
                                             {master.description}
@@ -240,7 +231,6 @@ const AllMasters = () => {
                     )}
                 </div>
             </div>
-
             <style>{`
                 .master-card-optimized:hover {
                     transform: translateY(-4px);
@@ -258,5 +248,4 @@ const AllMasters = () => {
         </div>
     );
 };
-
 export default AllMasters;
