@@ -62,6 +62,8 @@ const SalesList = () => {
   // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
   // This reduces unnecessary re-renders when other state changes occur (like toggling filters)
   const filteredData = useMemo(() => {
+    if (!searchText) return saleslistdata;
+
     const lowerSearchText = searchText.toLowerCase();
     return saleslistdata.filter((entry) => {
       return Object.keys(entry).some((key) => {
