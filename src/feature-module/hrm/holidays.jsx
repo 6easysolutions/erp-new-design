@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { leavedata } from "../../core/json/leavesdata";
 import AddHolidays from "../../core/modals/hrm/addholidays";
@@ -22,13 +22,17 @@ const Holidays = () => {
   const handleSearch = (value) => {
     setSearchQuery(value);
   };
-  const filteredData = datas.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // Also adds early return to bypass loop iteration when searchText is empty
+  const filteredData = useMemo(() => {
+    if (!searchText) return datas;
+    const lowerSearchText = searchText.toLowerCase();
+    return datas.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
+      });
     });
-  });
+  }, [datas, searchText]);
 
   const columns = [
   {
