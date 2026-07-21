@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { URLS } from "../../../Urls";
@@ -310,11 +310,18 @@ const Holidays = () => {
     }
   };
 
-  const filteredData = holidaysData.filter(
-    (holiday) =>
-      holiday.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      holiday.type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Optimization: Memoize filtered data and extract toLowerCase() outside the loop
+  // Adds early return to bypass array iterations for empty search queries
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return holidaysData;
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return holidaysData.filter(
+      (holiday) =>
+        holiday.name?.toLowerCase().includes(lowerSearchTerm) ||
+        holiday.type?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [holidaysData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
