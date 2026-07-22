@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import AddLeaveEmployee from "../../core/modals/hrm/addleaveemployee";
 import EditLeaveEmployee from "../../core/modals/hrm/editleaveemployee";
@@ -117,13 +117,21 @@ const LeavesEmployee = () => {
 
 
   const [searchText] = useState("");
-  const filteredData = leavesEmployeedata.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+
+  // ⚡ Bolt Performance Optimization:
+  // Memoized array filtering to prevent O(N*M) recalculations during unrelated renders
+  // Extracted searchText.toLowerCase() to avoid redundant string operations in the inner loop
+  // Expected impact: Eliminates O(N*M) re-evaluations during unrelated re-renders
+  const filteredData = useMemo(() => {
+    if (!searchText) return leavesEmployeedata;
+
+    const lowerSearchText = searchText.toLowerCase();
+    return leavesEmployeedata.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
+      });
     });
-  });
+  }, [leavesEmployeedata, searchText]);
 
   return (
     <div>
