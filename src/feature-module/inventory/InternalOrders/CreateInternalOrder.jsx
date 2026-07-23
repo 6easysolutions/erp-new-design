@@ -210,6 +210,8 @@ const CreateInternalOrder = () => {
   const handleCheckAll = () => { const all = items.every((i) => i.checked); setItems((p) => p.map((i) => ({ ...i, checked: !all }))); };
 
   const filteredItems = useMemo(() => {
+    // ⚡ Bolt: Early return for empty search to avoid iterating large datasets and redundant string operations
+    if (!formData.search) return items;
     const q = formData.search.toLowerCase();
     return items.filter((i) => i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q) || i.location.toLowerCase().includes(q));
   }, [items, formData.search]);
