@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import AddLeaveEmployee from "../../core/modals/hrm/addleaveemployee";
 import EditLeaveEmployee from "../../core/modals/hrm/editleaveemployee";
@@ -117,13 +117,16 @@ const LeavesEmployee = () => {
 
 
   const [searchText] = useState("");
-  const filteredData = leavesEmployeedata.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+
+  const filteredData = useMemo(() => {
+    if (!searchText) return leavesEmployeedata;
+    const lowerSearchText = searchText.toLowerCase();
+    return leavesEmployeedata.filter((entry) => {
+      return Object.values(entry).some((value) => {
+        return String(value).toLowerCase().includes(lowerSearchText);
+      });
     });
-  });
+  }, [leavesEmployeedata, searchText]);
 
   return (
     <div>
