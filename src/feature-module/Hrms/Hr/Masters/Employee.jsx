@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { URLS } from "../../../../Urls";
 import axios from "axios";
@@ -403,13 +403,17 @@ const Employee = () => {
     return designation ? designation.name : "N/A";
   };
 
-  const filteredData = employeesData.filter(
-    (emp) =>
-      emp.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  const filteredData = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return employeesData.filter(
+      (emp) =>
+        emp.firstName?.toLowerCase().includes(lowerSearchTerm) ||
+        emp.lastName?.toLowerCase().includes(lowerSearchTerm) ||
+        emp.email?.toLowerCase().includes(lowerSearchTerm) ||
+        emp.phone?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [employeesData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
