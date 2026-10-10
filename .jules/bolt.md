@@ -1,3 +1,6 @@
-## 2024-06-25 - Replace O(N) array search inside `.map` with Map lookup
-**Learning:** In React components like `pos4.jsx`, rendering a grid of products while checking each one against a cart array using `cart.some` and `cart.find` leads to an O(N * M) time complexity during every render.
-**Action:** Always precompute a `Map` of items when checking if an element exists within another collection inside a `.map` loop, reducing time complexity to O(N + M) and significantly reducing CPU usage during re-renders.
+## 2024-05-18 - [Optimized AppRouter Component Render Cycle]
+**Learning:** React Router `v6` doesn't optimize correctly when internal components like `RouterContent` in `AppRouter` are defined locally, causing full DOM remounts of the routing tree on any state change. Also, tests that are designed to fail (`src/test/AddProduct.bugCondition.test.jsx`) should NOT be fixed or removed just to get green checks, as they act as a ledger for outstanding bugs.
+**Action:** Extract components out of render functions immediately to enable proper `React.memo()` utilization. Never delete pre-existing failing tests in optimization PRs.
+## 2026-07-08 - Identified Inefficient Array Filtering Pattern
+**Learning:** The codebase has a prevalent anti-pattern of filtering large static datasets synchronously inside component render functions without memoization (e.g. `data.filter(...)`). It additionally compounds the issue by performing redundant operations, such as extracting keys and repeatedly evaluating `searchText.toLowerCase()` inside inner loops, leading to O(N*M) redundant string conversions.
+**Action:** Always wrap array filtering operations with `useMemo` to prevent performance degradation during unrelated component re-renders. Furthermore, extract redundant string manipulations (like `toLowerCase()`) outside of the filter/loop execution logic to avoid unnecessary re-evaluation.
