@@ -54,6 +54,8 @@ const DataTables = () => {
   // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
   // This reduces unnecessary re-renders when other state changes occur
   const filteredData = useMemo(() => {
+    if (!searchText) return data;
+
     const lowerSearchText = searchText.toLowerCase();
     return data.filter((entry) => {
       return Object.keys(entry).some((key) => {
