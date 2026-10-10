@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { URLS } from '../../Urls';
 
@@ -29,13 +29,36 @@ const Sale = () => {
     const [draftCount, setDraftCount] = useState(0);
 
     // Computed totals
-    const totalMRP = items.reduce((s, i) => s + (parseFloat(i.mrp || 0) * parseInt(i.qty || 0)), 0);
-    const totalSale = items.reduce((s, i) => s + (parseFloat(i.rate || 0) * parseInt(i.qty || 0)), 0);
-    const taxableValue = totalSale;
-    const gstAmt = items.reduce((s, i) => s + parseFloat(i.gstRs || 0), 0);
-    const grossSale = taxableValue + gstAmt;
-    const netSale = grossSale - extraDiscRs + parseFloat(roundOff || 0);
-    const totalQty = items.reduce((s, i) => s + parseInt(i.qty || 0), 0);
+    // OPTIMIZATION: Memoize computed totals using a single O(N) loop to avoid recalculating on every re-render (e.g. keystrokes in search).
+    const { totalMRP, totalSale, taxableValue, gstAmt, grossSale, netSale, totalQty } = useMemo(() => {
+        let _totalMRP = 0;
+        let _totalSale = 0;
+        let _gstAmt = 0;
+        let _totalQty = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const qty = parseInt(item.qty || 0);
+            _totalMRP += parseFloat(item.mrp || 0) * qty;
+            _totalSale += parseFloat(item.rate || 0) * qty;
+            _gstAmt += parseFloat(item.gstRs || 0);
+            _totalQty += qty;
+        }
+
+        const _taxableValue = _totalSale;
+        const _grossSale = _taxableValue + _gstAmt;
+        const _netSale = _grossSale - parseFloat(extraDiscRs || 0) + parseFloat(roundOff || 0);
+
+        return {
+            totalMRP: _totalMRP,
+            totalSale: _totalSale,
+            taxableValue: _taxableValue,
+            gstAmt: _gstAmt,
+            grossSale: _grossSale,
+            netSale: _netSale,
+            totalQty: _totalQty
+        };
+    }, [items, extraDiscRs, roundOff]);
 
     // Handle outside click for dropdown
     useEffect(() => {
@@ -50,11 +73,6 @@ const Sale = () => {
 
     // Search API call
     const fetchSearchResults = async (query) => {
-        if (!query.trim()) {
-            setSearchResults([]);
-            setShowDropdown(false);
-            return;
-        }
         try {
             const token = localStorage.getItem('authToken');
             const response = await axios.post(`${URLS.SearchByStore}?searchQuery=${query}`, {}, {
@@ -74,11 +92,24 @@ const Sale = () => {
         }
     };
 
+    // OPTIMIZATION: Debounce API requests on search input to prevent unnecessary network load
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (itemSearch.trim()) {
+                fetchSearchResults(itemSearch);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [itemSearch]);
+
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setItemSearch(value);
-        // Add a small debounce or direct call (direct for now)
-        fetchSearchResults(value);
+        if (!value.trim()) {
+            setSearchResults([]);
+            setShowDropdown(false);
+        }
     };
 
     const handleSelectProduct = (product) => {
