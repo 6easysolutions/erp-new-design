@@ -7,11 +7,8 @@ import { debounce } from "../../utils/debounce";
 
 
 const SearchFromApi = ({ callback }) => {
-  // ⚡ Bolt Optimization: Memoize the debounced function to persist it across renders.
-  // Without useMemo, a new debounce instance is created on every render,
-  // causing the timeout to be lost and allowing excessive calls to the callback.
-  // Expected impact: Reduces callback executions to at most 1 per 700ms during typing,
-  // dramatically improving performance when typing in search bars across the app.
+  // ⚡ Bolt Optimization: Memoize the debounced callback so the internal timeout is preserved across re-renders
+  // This prevents multiple API calls being triggered if the component re-renders while typing.
   const dataApi = useMemo(() => debounce(callback, 700), [callback]);
 
   const handleChange = (e) => {
