@@ -316,6 +316,15 @@ const Pos4 = () => {
 
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
 
+  // ⚡ PERFORMANCE OPTIMIZATION: Memoize cart items into a Map
+  // This reduces the O(N*M) lookup in the product render loop to O(N+M)
+  // N = storeProducts.length, M = cart.length
+  const cartItemsMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
   // ==================== API FUNCTIONS ====================
 
   /**
@@ -540,12 +549,29 @@ const Pos4 = () => {
     } catch (err) {
       console.error("Error searching by barcode:", err);
 
-      // FIX: Better error handling with specific messages
-      let errorMessage = "Error searching by barcode";
-      if (err.response?.status === 404) {
-        errorMessage = `No product found with barcode: ${barcode}`;
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
+      let errorMessage = "An unexpected error occurred while searching by barcode";
+
+      if (err.response) {
+        // Server responded with a status code outside the 2xx range
+        const status = err.response.status;
+        const serverMessage = err.response.data?.message;
+
+        if (status === 404) {
+          errorMessage = `No product found with barcode: ${barcode}`;
+        } else if (status === 400) {
+          errorMessage = serverMessage || "Invalid barcode format provided";
+        } else if (status >= 500) {
+          errorMessage = "Server error: Please try again later or contact support";
+        } else if (serverMessage) {
+          errorMessage = serverMessage;
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        errorMessage =
+          "Network error: Unable to reach the server. Please check your connection.";
+      } else {
+        // Something else happened in setting up the request
+        errorMessage = err.message || "Error setting up the search request";
       }
 
       showError(errorMessage);
@@ -932,7 +958,8 @@ const Pos4 = () => {
                         <div className="row g-2">
                           {/* ⚡ Bolt Optimization: Removed inline map dictionary building since we can use useMemo */}
                           {storeProducts.map((product) => {
-                            const cartItem = cartLookup[product.id];
+                            // ⚡ PERFORMANCE OPTIMIZATION: O(1) lookup instead of O(M)
+                            const cartItem = cartItemsMap.get(product.id);
                             const isInCart = !!cartItem;
 
                             return (

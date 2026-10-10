@@ -1,7 +1,6 @@
-## 2024-05-14 - Inline array creation in render loops
-**Learning:** Found an inline array creation inside `categories.map` in `pos4.jsx`: `const categoryImages = [...]`. This causes the array to be recreated on every single iteration of the map, which runs on every render, adding unnecessary garbage collection pressure and CPU cycles, especially since categories list can grow.
-**Action:** Move static data structures like arrays or objects outside of components or memoize them, particularly when they are used within loops or map functions.
-
-## 2024-05-14 - Unnecessary array operations inside map
-**Learning:** Found O(N*M) complexity in `storeProducts.map` where it calls `cart.some` and `cart.find` for EVERY product in the grid. If we have 100 products and 10 items in cart, that's 2000 iterations every render!
-**Action:** Convert arrays to maps/sets before looping, or use useMemo to create a quick lookup dictionary.
+## 2024-05-18 - [Optimized AppRouter Component Render Cycle]
+**Learning:** React Router `v6` doesn't optimize correctly when internal components like `RouterContent` in `AppRouter` are defined locally, causing full DOM remounts of the routing tree on any state change. Also, tests that are designed to fail (`src/test/AddProduct.bugCondition.test.jsx`) should NOT be fixed or removed just to get green checks, as they act as a ledger for outstanding bugs.
+**Action:** Extract components out of render functions immediately to enable proper `React.memo()` utilization. Never delete pre-existing failing tests in optimization PRs.
+## 2026-07-08 - Identified Inefficient Array Filtering Pattern
+**Learning:** The codebase has a prevalent anti-pattern of filtering large static datasets synchronously inside component render functions without memoization (e.g. `data.filter(...)`). It additionally compounds the issue by performing redundant operations, such as extracting keys and repeatedly evaluating `searchText.toLowerCase()` inside inner loops, leading to O(N*M) redundant string conversions.
+**Action:** Always wrap array filtering operations with `useMemo` to prevent performance degradation during unrelated component re-renders. Furthermore, extract redundant string manipulations (like `toLowerCase()`) outside of the filter/loop execution logic to avoid unnecessary re-evaluation.
