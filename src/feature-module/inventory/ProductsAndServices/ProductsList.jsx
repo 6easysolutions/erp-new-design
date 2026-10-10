@@ -176,23 +176,16 @@ const ProductsList = () => {
 
   // -------------------- Map product data using dropdowns --------------------
   const mappedProducts = useMemo(() => {
-    // ⚡ Bolt: Replaced O(n^2) nested array .find() with O(n) hash map lookups
-    // Impact: Significantly reduces UI blocking time when mapping large product arrays
-    // with large dropdown lists.
+    // ⚡ Bolt Performance Optimization: Replace O(N²) nested `.find()` loops with O(N) hash map lookups.
+    // By pre-computing maps for categories, subcategories, and brands, we reduce the time complexity
+    // of rendering the products list from O(Products * Dropdowns) to O(Products + Dropdowns).
+    const categoryMap = new Map(dropdowns.categories.map((c) => [c.id, c.name]));
+    const subCategoryMap = new Map(dropdowns.subcategories.map((s) => [s.id, s.name]));
+    const brandMap = new Map(dropdowns.brands.map((b) => [b.id, b.name]));
 
-    // Pre-compute maps for O(1) lookups
-    const categoryMap = new Map();
-    dropdowns.categories.forEach(c => categoryMap.set(c.id, c.name));
-
-    const subcategoryMap = new Map();
-    dropdowns.subcategories.forEach(s => subcategoryMap.set(s.id, s.name));
-
-    const brandMap = new Map();
-    dropdowns.brands.forEach(b => brandMap.set(b.id, b.name));
-
-    // Helper to find name by ID
+    // Helper to find name by ID using maps (O(1) lookup)
     const getCategoryName = (id) => categoryMap.get(id) || "N/A";
-    const getSubcategoryName = (id) => subcategoryMap.get(id) || "N/A";
+    const getSubcategoryName = (id) => subCategoryMap.get(id) || "N/A";
     const getBrandName = (id) => brandMap.get(id) || "N/A";
 
     return products.map((item) => ({
