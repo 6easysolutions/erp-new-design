@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import axios from "axios";
@@ -607,11 +607,25 @@ const PurchaseReturns = () => {
     }
   };
 
-  const filteredPurchaseOrders = purchaseOrders.filter((o) =>
-    !searchInvoice ||
-    o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
-    o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
-  );
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  const filteredPurchaseOrders = useMemo(() => {
+    if (!searchInvoice) return purchaseOrders;
+    const lowerSearchInvoice = searchInvoice.toLowerCase();
+    return purchaseOrders.filter((o) =>
+      o.invoice_number?.toLowerCase().includes(lowerSearchInvoice) ||
+      o.batchId?.toLowerCase().includes(lowerSearchInvoice)
+    );
+  }, [purchaseOrders, searchInvoice]);
+
+  // Optimization: Memoize selected purchase items filtering to avoid O(N*M) re-evaluation inside JSX during renders
+  const filteredSelectedPurchaseItems = useMemo(() => {
+    if (!itemSearchQuery) return selectedPurchaseItems;
+    const lowerItemSearchQuery = itemSearchQuery.toLowerCase();
+    return selectedPurchaseItems.filter((item) =>
+      item.item_name?.toLowerCase().includes(lowerItemSearchQuery) ||
+      item.invoiceNo?.toLowerCase().includes(lowerItemSearchQuery)
+    );
+  }, [selectedPurchaseItems, itemSearchQuery]);
 
   const calculateTotals = () => {
     const valid  = returnItems.filter((i) => i.productId || i.id);
@@ -930,13 +944,7 @@ const PurchaseReturns = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedPurchaseItems
-                        .filter((item) =>
-                          !itemSearchQuery ||
-                          item.item_name?.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
-                          item.invoiceNo?.toLowerCase().includes(itemSearchQuery.toLowerCase())
-                        )
-                        .map((item, index) => (
+                      {filteredSelectedPurchaseItems.map((item, index) => (
                           <tr
                             key={item.uniqueKey || index}
                             className={selectedItemIds.includes(index) ? "pms-row-selected" : ""}
