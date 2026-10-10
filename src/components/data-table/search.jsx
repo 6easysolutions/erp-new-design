@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useMemo } from "react";
 import { debounce } from "../../utils/debounce";
 
 
@@ -7,25 +7,9 @@ import { debounce } from "../../utils/debounce";
 
 
 const SearchFromApi = ({ callback }) => {
-  // Use a ref to store the latest callback so we don't recreate the debounced function
-  // every time the callback changes (which happens often when passed inline).
-  const callbackRef = useRef(callback);
-
-  useEffect(() => {
-    callbackRef.current = callback;
-  }, [callback]);
-
-  // Create the debounced function only once.
-  // We use 700ms to match the previous implementation.
-  // Using useRef ensures that this debounced function maintains its internal timer
-  // state across re-renders, preventing duplicate API calls when the parent re-renders.
-  const dataApi = useRef(
-    debounce((val) => {
-      if (callbackRef.current) {
-        callbackRef.current(val);
-      }
-    }, 700)
-  ).current;
+  // ⚡ Bolt Optimization: Memoize the debounced callback so the internal timeout is preserved across re-renders
+  // This prevents multiple API calls being triggered if the component re-renders while typing.
+  const dataApi = useMemo(() => debounce(callback, 700), [callback]);
 
   const handleChange = (e) => {
     dataApi(e.target.value?.trim());
