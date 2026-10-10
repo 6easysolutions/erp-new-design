@@ -18,6 +18,7 @@ const Sale = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const searchRef = useRef(null);
+    const searchTimeoutRef = useRef(null);
     const [barcodeInput, setBarcodeInput] = useState('');
     const [inStock, setInStock] = useState(true);
     const [items, setItems] = useState([]);
@@ -69,6 +70,15 @@ const Sale = () => {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Cleanup search timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
     }, []);
 
     // Search API call
