@@ -4,7 +4,7 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import ThemeSettings from "../components/layouts/themeSettings";
 import { authRoutes, posPages, unAuthRoutes } from "../routes/path";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import TwoColumnSidebar from "../components/layouts/two-column";
 import HorizontalSidebar from "../components/layouts/horizontalSidebar";
 import PosHeader from "./pos/posHeader";
@@ -52,24 +52,30 @@ const FeatureModule = () => {
 
   };
 
-  const isUnAuthRoute = unAuthRoutes.some((route) =>
-  matchPath(
-    { path: typeof route === "string" ? route : route.path, end: true },
-    location.pathname
-  )
-  );
-  const isPosPage = posPages.some((route) =>
-  matchPath(
-    { path: typeof route === "string" ? route : route.path, end: true },
-    location.pathname
-  )
-  );
-  const isAuthRoute = authRoutes.some((route) =>
-  matchPath(
-    { path: typeof route === "string" ? route : route.path, end: true },
-    location.pathname
-  )
-  );
+  // ⚡ Bolt Optimization: Memoize expensive route matching
+  // What: Wrap matchPath loops in useMemo with location.pathname dependency
+  // Why: Prevents running ~330 matchPath regex operations on every re-render (e.g. from redux state changes)
+  // Impact: Significantly reduces CPU usage during standard component re-renders
+  const isUnAuthRoute = useMemo(() => unAuthRoutes.some((route) =>
+    matchPath(
+      { path: typeof route === "string" ? route : route.path, end: true },
+      location.pathname
+    )
+  ), [location.pathname]);
+
+  const isPosPage = useMemo(() => posPages.some((route) =>
+    matchPath(
+      { path: typeof route === "string" ? route : route.path, end: true },
+      location.pathname
+    )
+  ), [location.pathname]);
+
+  const isAuthRoute = useMemo(() => authRoutes.some((route) =>
+    matchPath(
+      { path: typeof route === "string" ? route : route.path, end: true },
+      location.pathname
+    )
+  ), [location.pathname]);
 
   if (isUnAuthRoute) {
     return (
