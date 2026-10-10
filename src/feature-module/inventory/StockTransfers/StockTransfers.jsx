@@ -138,12 +138,31 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
-  const stats = {
-    total:      totalRecords,
-    dispatched: data.filter((t) => t.status && t.status.toLowerCase() === "dispatched").length,
-    inProgress: data.filter((t) => t.status && ["pending", "approved", "approve"].includes(t.status.toLowerCase())).length,
-    draft:      data.filter((t) => t.status && t.status.toLowerCase() === "draft").length,
-  };
+  // ⚡ Bolt Optimization: Consolidate multiple O(N) array filtering passes into a single pass O(N) loop inside useMemo
+  const stats = useMemo(() => {
+    let dispatched = 0;
+    let inProgress = 0;
+    let draft = 0;
+
+    for (const t of data) {
+      if (!t.status) continue;
+      const statusLower = t.status.toLowerCase();
+      if (statusLower === "dispatched") {
+        dispatched++;
+      } else if (["pending", "approved", "approve"].includes(statusLower)) {
+        inProgress++;
+      } else if (statusLower === "draft") {
+        draft++;
+      }
+    }
+
+    return {
+      total: totalRecords,
+      dispatched,
+      inProgress,
+      draft,
+    };
+  }, [data, totalRecords]);
 
   return (
     <>
