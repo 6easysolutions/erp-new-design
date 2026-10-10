@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "../../KopagPOS.css";
 
@@ -160,17 +160,13 @@ const KopagPOS = () => {
     setCart(prevCart => prevCart.filter(item => item.id !== itemId));
   };
 
-  const calculateSubtotal = () => {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  };
-
-  const calculateTax = () => {
-    return calculateSubtotal() * 0.10;
-  };
-
-  const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
-  };
+  // Performance Optimization: Memoize cart totals to prevent recalculating on every re-render (e.g. typing customer name)
+  const cartTotals = useMemo(() => {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = subtotal * 0.10;
+    const total = subtotal + tax;
+    return { subtotal, tax, total };
+  }, [cart]);
 
   const handleOrderClick = (order) => {
     setSelectedCustomer(order);
@@ -192,6 +188,11 @@ const KopagPOS = () => {
   const isItemInCart = (itemId) => {
     return cart.some(item => item.id === itemId);
   };
+
+  // Performance Optimization: Memoize filtered menu items to prevent redundant O(N) operations on every re-render (e.g. keystrokes in customerName input)
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(item => item.category === activeCategory);
+  }, [menuItems, activeCategory]);
 
   return (
     <div className="kopag-pos-container page-wrapper">
@@ -258,11 +259,11 @@ const KopagPOS = () => {
           <div className="menu-section">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="fw-bold mb-0">Menu</h5>
-              <span className="text-muted items-count">Showing {menuItems.filter(item => item.category === activeCategory).length} items</span>
+              <span className="text-muted items-count">Showing {filteredMenuItems.length} items</span>
             </div>
 
             <div className="row row-cols-1 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 g-4">
-              {menuItems.filter(item => item.category === activeCategory).map(item => (
+              {filteredMenuItems.map(item => (
                 <div key={item.id} className="col">
                   <div className={`menu-card card h-100 ${isItemInCart(item.id) ? 'card-active' : 'card-inactive'} ${item.available === 0 ? 'card-disabled' : ''}`}>
                     <div className="position-relative menu-image-wrapper">
@@ -445,16 +446,16 @@ const KopagPOS = () => {
               <div className="summary-details">
                 <div className="summary-row d-flex justify-content-between mb-2">
                   <span className="text-muted">Subtotal</span>
-                  <span className="fw-semibold">${calculateSubtotal().toFixed(2)}</span>
+                  <span className="fw-semibold">${cartTotals.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="summary-row d-flex justify-content-between mb-3">
                   <span className="text-muted">Tax (10%)</span>
-                  <span className="fw-semibold">${calculateTax().toFixed(2)}</span>
+                  <span className="fw-semibold">${cartTotals.tax.toFixed(2)}</span>
                 </div>
                 <hr className="summary-divider" />
                 <div className="summary-total d-flex justify-content-between mb-4">
                   <span className="fw-bold fs-5">Total</span>
-                  <span className="fw-bold fs-5 total-amount">${calculateTotal().toFixed(2)}</span>
+                  <span className="fw-bold fs-5 total-amount">${cartTotals.total.toFixed(2)}</span>
                 </div>
                 <button 
                   className="btn btn-primary btn-process w-100 py-3 fw-bold"
