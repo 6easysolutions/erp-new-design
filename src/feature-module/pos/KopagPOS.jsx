@@ -189,9 +189,16 @@ const KopagPOS = () => {
     setCart([]);
   };
 
-  const isItemInCart = (itemId) => {
-    return cart.some(item => item.id === itemId);
-  };
+  // ⚡ Bolt Performance Optimization: Convert O(N*M) loop inside render to O(N) lookup
+  const cartItemMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
+  const isItemInCart = useCallback((itemId) => {
+    return cartItemMap.has(itemId);
+  }, [cartItemMap]);
 
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter(item => item.category === activeCategory);
