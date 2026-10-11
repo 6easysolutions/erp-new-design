@@ -138,12 +138,33 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
-  const stats = {
-    total:      totalRecords,
-    dispatched: data.filter((t) => t.status && t.status.toLowerCase() === "dispatched").length,
-    inProgress: data.filter((t) => t.status && ["pending", "approved", "approve"].includes(t.status.toLowerCase())).length,
-    draft:      data.filter((t) => t.status && t.status.toLowerCase() === "draft").length,
-  };
+  // ⚡ Bolt: Optimized derived statistics calculation
+  // 💡 What: Consolidated 3 separate `.filter().length` passes into a single-pass `for...of` loop within `useMemo`.
+  // 🎯 Why: Previously, filtering large datasets inside the render function caused O(3N) overhead without memoization.
+  // 📊 Impact: Reduces O(3N) multiple iterations to O(N) single iteration, skipping redundant passes on unchanged data.
+  const stats = useMemo(() => {
+    let dispatched = 0, inProgress = 0, draft = 0;
+
+    for (const t of data) {
+      if (!t.status) continue;
+
+      const statusLower = t.status.toLowerCase();
+      if (statusLower === "dispatched") {
+        dispatched++;
+      } else if (["pending", "approved", "approve"].includes(statusLower)) {
+        inProgress++;
+      } else if (statusLower === "draft") {
+        draft++;
+      }
+    }
+
+    return {
+      total: totalRecords,
+      dispatched,
+      inProgress,
+      draft,
+    };
+  }, [data, totalRecords]);
 
   return (
     <>
