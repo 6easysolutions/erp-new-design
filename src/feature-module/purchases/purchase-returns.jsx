@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import axios from "axios";
@@ -607,11 +607,27 @@ const PurchaseReturns = () => {
     }
   };
 
-  const filteredPurchaseOrders = purchaseOrders.filter((o) =>
-    !searchInvoice ||
-    o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
-    o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
-  );
+  // ⚡ Bolt Performance Optimization:
+  // Wrap filter operations in useMemo to avoid O(N*M) redundant string conversions and
+  // unnecessary re-renders on arbitrary state updates. Early return for empty queries
+  // completely bypasses array iteration overhead.
+  const filteredPurchaseOrders = useMemo(() => {
+    if (!searchInvoice) return purchaseOrders;
+    const query = searchInvoice.toLowerCase();
+    return purchaseOrders.filter((o) =>
+      o.invoice_number?.toLowerCase().includes(query) ||
+      o.batchId?.toLowerCase().includes(query)
+    );
+  }, [purchaseOrders, searchInvoice]);
+
+  const filteredPurchaseItems = useMemo(() => {
+    if (!itemSearchQuery) return selectedPurchaseItems;
+    const query = itemSearchQuery.toLowerCase();
+    return selectedPurchaseItems.filter((item) =>
+      item.item_name?.toLowerCase().includes(query) ||
+      item.invoiceNo?.toLowerCase().includes(query)
+    );
+  }, [selectedPurchaseItems, itemSearchQuery]);
 
   const calculateTotals = () => {
     const valid  = returnItems.filter((i) => i.productId || i.id);
@@ -930,12 +946,7 @@ const PurchaseReturns = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedPurchaseItems
-                        .filter((item) =>
-                          !itemSearchQuery ||
-                          item.item_name?.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
-                          item.invoiceNo?.toLowerCase().includes(itemSearchQuery.toLowerCase())
-                        )
+                      {filteredPurchaseItems
                         .map((item, index) => (
                           <tr
                             key={item.uniqueKey || index}
