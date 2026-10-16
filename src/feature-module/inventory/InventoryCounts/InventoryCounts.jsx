@@ -66,9 +66,11 @@ const InventoryCounts = () => {
 
   // ── Filtered + paginated ───────────────────────────────────────────────────
   const filteredSessions = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    if (!q && statusFilter === "all") return sessions;
+
     return sessions.filter((s) => {
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
+      const matchSearch = !q ||
         (s.sessionCode || "").toLowerCase().includes(q) ||
         (String(s.storeId) || "").toLowerCase().includes(q) ||
         (s.categoryName || "").toLowerCase().includes(q) ||
@@ -86,13 +88,16 @@ const InventoryCounts = () => {
   const endRecord    = Math.min(safePage * rows, filteredSessions.length);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => ({
-    total:     sessions.length,
-    draft:     sessions.filter((s) => s.status === "Draft").length,
-    progress:  sessions.filter((s) => s.status === "In Progress").length,
-    submitted: sessions.filter((s) => s.status === "Submitted").length,
-    completed: sessions.filter((s) => s.status === "Completed").length,
-  }), [sessions]);
+  const stats = useMemo(() => {
+    const res = { total: sessions.length, draft: 0, progress: 0, submitted: 0, completed: 0 };
+    for (const s of sessions) {
+      if (s.status === "Draft") res.draft++;
+      else if (s.status === "In Progress") res.progress++;
+      else if (s.status === "Submitted") res.submitted++;
+      else if (s.status === "Completed") res.completed++;
+    }
+    return res;
+  }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
   const getPageNumbers = () => {
@@ -730,7 +735,15 @@ const InventoryCounts = () => {
                       paginated.map((session) => {
                         const statusMeta      = getStatusMeta(session.status);
                         const itemsArr        = Array.isArray(session.items) ? session.items : [];
-                        const approvedCnt     = itemsArr.filter(i => i.approvalStatus === "approved" || i.approvalStatus === "complete").length;
+
+                        let approvedCnt = 0;
+                        for (let i = 0; i < itemsArr.length; i++) {
+                          const status = itemsArr[i].approvalStatus;
+                          if (status === "approved" || status === "complete") {
+                            approvedCnt++;
+                          }
+                        }
+
                         const total           = session.totalItems ?? itemsArr.length;
                         const progressPct     = total === 0 ? 0 : Math.round((approvedCnt / total) * 100);
                         const progressText    = `${approvedCnt} / ${total}`;
