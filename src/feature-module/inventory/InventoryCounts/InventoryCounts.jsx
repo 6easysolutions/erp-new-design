@@ -66,15 +66,22 @@ const InventoryCounts = () => {
 
   // ── Filtered + paginated ───────────────────────────────────────────────────
   const filteredSessions = useMemo(() => {
+    // ⚡ Bolt Performance: Extract lowercasing outside the loop to avoid redundant calculations
+    const q = searchQuery.toLowerCase();
+
     return sessions.filter((s) => {
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
+      const matchStatus = statusFilter === "all" || s.status === statusFilter;
+
+      // ⚡ Bolt Performance: Early return bypasses all string operations when search is empty or if status already mismatches
+      if (!matchStatus) return false;
+      if (!q) return true;
+
+      return (
         (s.sessionCode || "").toLowerCase().includes(q) ||
         (String(s.storeId) || "").toLowerCase().includes(q) ||
         (s.categoryName || "").toLowerCase().includes(q) ||
-        (s.countType   || "").toLowerCase().includes(q);
-      const matchStatus = statusFilter === "all" || s.status === statusFilter;
-      return matchSearch && matchStatus;
+        (s.countType   || "").toLowerCase().includes(q)
+      );
     });
   }, [sessions, searchQuery, statusFilter]);
 
@@ -86,13 +93,17 @@ const InventoryCounts = () => {
   const endRecord    = Math.min(safePage * rows, filteredSessions.length);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => ({
-    total:     sessions.length,
-    draft:     sessions.filter((s) => s.status === "Draft").length,
-    progress:  sessions.filter((s) => s.status === "In Progress").length,
-    submitted: sessions.filter((s) => s.status === "Submitted").length,
-    completed: sessions.filter((s) => s.status === "Completed").length,
-  }), [sessions]);
+  const stats = useMemo(() => {
+    // ⚡ Bolt Performance: Single-pass iteration to calculate stats instead of multiple .filter().length passes
+    return sessions.reduce((acc, s) => {
+      acc.total++;
+      if (s.status === "Draft") acc.draft++;
+      else if (s.status === "In Progress") acc.progress++;
+      else if (s.status === "Submitted") acc.submitted++;
+      else if (s.status === "Completed") acc.completed++;
+      return acc;
+    }, { total: 0, draft: 0, progress: 0, submitted: 0, completed: 0 });
+  }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
   const getPageNumbers = () => {
