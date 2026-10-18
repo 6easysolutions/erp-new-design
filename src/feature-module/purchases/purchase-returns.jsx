@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import axios from "axios";
@@ -613,25 +613,33 @@ const PurchaseReturns = () => {
     o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
   );
 
-  const calculateTotals = () => {
-    const valid  = returnItems.filter((i) => i.productId || i.id);
-    const noOfItems = valid.length;
-    const totalQty  = valid.reduce((s, i) => s + safeToNumber(returnQuantities[i.uniqueKey] || i.quantity_stock), 0);
-    const totalAmount = valid.reduce((s, i) => {
-      const qty  = safeToNumber(returnQuantities[i.uniqueKey] || i.quantity_stock);
-      return s + qty * safeToNumber(i.purchase_rate);
-    }, 0);
-    const totalTax = valid.reduce((s, i) => {
-      const qty    = safeToNumber(returnQuantities[i.uniqueKey] || i.quantity_stock);
-      const origQty = safeToNumber(i.quantity_stock);
-      const perUnit = origQty > 0 ? safeToNumber(i.total_tax) / origQty : 0;
-      return s + qty * perUnit;
-    }, 0);
-    const totalChargesAmount = charges.reduce((s, c) => s + safeToNumber(c.total_amount), 0);
-    return { noOfItems, totalQty, totalAmount, totalTax, totalChargesAmount, finalAmount: totalAmount + totalTax + totalChargesAmount };
-  };
+  // ⚡ Bolt Performance Optimization: Calculate totals efficiently with useMemo in a single pass instead of multiple .reduce() loops
+  const totals = useMemo(() => {
+    let noOfItems = 0;
+    let totalQty = 0;
+    let totalAmount = 0;
+    let totalTax = 0;
 
-  const totals        = calculateTotals();
+    for (const i of returnItems) {
+      if (i.productId || i.id) {
+        noOfItems++;
+        const qty = safeToNumber(returnQuantities[i.uniqueKey] || i.quantity_stock);
+        const origQty = safeToNumber(i.quantity_stock);
+        const perUnit = origQty > 0 ? safeToNumber(i.total_tax) / origQty : 0;
+
+        totalQty += qty;
+        totalAmount += qty * safeToNumber(i.purchase_rate);
+        totalTax += qty * perUnit;
+      }
+    }
+
+    let totalChargesAmount = 0;
+    for (const c of charges) {
+      totalChargesAmount += safeToNumber(c.total_amount);
+    }
+
+    return { noOfItems, totalQty, totalAmount, totalTax, totalChargesAmount, finalAmount: totalAmount + totalTax + totalChargesAmount };
+  }, [returnItems, returnQuantities, charges]);
   const formatDate    = (d) => { try { return new Date(d).toLocaleDateString("en-IN"); } catch { return "N/A"; } };
   const formatTime    = (d) => { try { return new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }); } catch { return "N/A"; } };
   const getSupplierName = () => suppliers.find((s) => s.value === selectedSupplier)?.label || "N/A";
