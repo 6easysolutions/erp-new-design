@@ -86,13 +86,25 @@ const InventoryCounts = () => {
   const endRecord    = Math.min(safePage * rows, filteredSessions.length);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => ({
-    total:     sessions.length,
-    draft:     sessions.filter((s) => s.status === "Draft").length,
-    progress:  sessions.filter((s) => s.status === "In Progress").length,
-    submitted: sessions.filter((s) => s.status === "Submitted").length,
-    completed: sessions.filter((s) => s.status === "Completed").length,
-  }), [sessions]);
+  // Bolt Optimization: Calculate multiple derived statistics from an array using a single-pass iteration
+  // to reduce time complexity from O(4N) to O(N).
+  const stats = useMemo(() => {
+    let draft = 0, progress = 0, submitted = 0, completed = 0;
+    for (let i = 0; i < sessions.length; i++) {
+      const s = sessions[i];
+      if (s.status === "Draft") draft++;
+      else if (s.status === "In Progress") progress++;
+      else if (s.status === "Submitted") submitted++;
+      else if (s.status === "Completed") completed++;
+    }
+    return {
+      total: sessions.length,
+      draft,
+      progress,
+      submitted,
+      completed,
+    };
+  }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
   const getPageNumbers = () => {
@@ -730,7 +742,13 @@ const InventoryCounts = () => {
                       paginated.map((session) => {
                         const statusMeta      = getStatusMeta(session.status);
                         const itemsArr        = Array.isArray(session.items) ? session.items : [];
-                        const approvedCnt     = itemsArr.filter(i => i.approvalStatus === "approved" || i.approvalStatus === "complete").length;
+                        // Bolt Optimization: Avoid intermediate array allocations inside React render loops
+                        let approvedCnt = 0;
+                        for (let i = 0; i < itemsArr.length; i++) {
+                          if (itemsArr[i].approvalStatus === "approved" || itemsArr[i].approvalStatus === "complete") {
+                            approvedCnt++;
+                          }
+                        }
                         const total           = session.totalItems ?? itemsArr.length;
                         const progressPct     = total === 0 ? 0 : Math.round((approvedCnt / total) * 100);
                         const progressText    = `${approvedCnt} / ${total}`;
