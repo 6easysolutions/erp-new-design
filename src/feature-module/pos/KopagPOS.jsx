@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "../../KopagPOS.css";
 
@@ -160,17 +160,17 @@ const KopagPOS = () => {
     setCart(prevCart => prevCart.filter(item => item.id !== itemId));
   };
 
-  const calculateSubtotal = () => {
+  const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  };
+  }, [cart]);
 
-  const calculateTax = () => {
-    return calculateSubtotal() * 0.10;
-  };
+  const tax = useMemo(() => {
+    return subtotal * 0.10;
+  }, [subtotal]);
 
-  const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
-  };
+  const total = useMemo(() => {
+    return subtotal + tax;
+  }, [subtotal, tax]);
 
   const handleOrderClick = (order) => {
     setSelectedCustomer(order);
@@ -189,9 +189,25 @@ const KopagPOS = () => {
     setCart([]);
   };
 
-  const isItemInCart = (itemId) => {
-    return cart.some(item => item.id === itemId);
-  };
+  // ⚡ Bolt Performance Optimization: Convert O(N*M) loop inside render to O(N) lookup
+  const cartItemMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
+  const isItemInCart = useCallback((itemId) => {
+    return cartItemMap.has(itemId);
+  }, [cartItemMap]);
+
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(item => item.category === activeCategory);
+  }, [menuItems, activeCategory]);
+
+  // Performance Optimization: Memoize filtered menu items to prevent redundant O(N) operations on every re-render (e.g. keystrokes in customerName input)
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(item => item.category === activeCategory);
+  }, [menuItems, activeCategory]);
 
   return (
     <div className="kopag-pos-container page-wrapper">
@@ -258,11 +274,11 @@ const KopagPOS = () => {
           <div className="menu-section">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="fw-bold mb-0">Menu</h5>
-              <span className="text-muted items-count">Showing {menuItems.filter(item => item.category === activeCategory).length} items</span>
+              <span className="text-muted items-count">Showing {filteredMenuItems.length} items</span>
             </div>
 
             <div className="row row-cols-1 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 g-4">
-              {menuItems.filter(item => item.category === activeCategory).map(item => (
+              {filteredMenuItems.map(item => (
                 <div key={item.id} className="col">
                   <div className={`menu-card card h-100 ${isItemInCart(item.id) ? 'card-active' : 'card-inactive'} ${item.available === 0 ? 'card-disabled' : ''}`}>
                     <div className="position-relative menu-image-wrapper">
@@ -445,16 +461,16 @@ const KopagPOS = () => {
               <div className="summary-details">
                 <div className="summary-row d-flex justify-content-between mb-2">
                   <span className="text-muted">Subtotal</span>
-                  <span className="fw-semibold">${calculateSubtotal().toFixed(2)}</span>
+                  <span className="fw-semibold">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="summary-row d-flex justify-content-between mb-3">
                   <span className="text-muted">Tax (10%)</span>
-                  <span className="fw-semibold">${calculateTax().toFixed(2)}</span>
+                  <span className="fw-semibold">${tax.toFixed(2)}</span>
                 </div>
                 <hr className="summary-divider" />
                 <div className="summary-total d-flex justify-content-between mb-4">
                   <span className="fw-bold fs-5">Total</span>
-                  <span className="fw-bold fs-5 total-amount">${calculateTotal().toFixed(2)}</span>
+                  <span className="fw-bold fs-5 total-amount">${total.toFixed(2)}</span>
                 </div>
                 <button 
                   className="btn btn-primary btn-process w-100 py-3 fw-bold"

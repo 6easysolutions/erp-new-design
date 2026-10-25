@@ -59,13 +59,16 @@ const SalesList = () => {
     setSearchText(e.target.value);
   };
   const [searchText, setSearchText] = useState("");
-  const filteredData = useMemo(() => saleslistdata.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur (like toggling filters)
+  const filteredData = useMemo(() => {
+    const lowerSearchText = searchText.toLowerCase();
+    return saleslistdata.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
+      });
     });
-  }), [saleslistdata, searchText]);
+  }, [searchText, saleslistdata]);
   const oldandlatestvalue = [
   { value: "Sort by Date", label: "Sort by Date" },
   { value: "07 09 23", label: "07 09 23" },
