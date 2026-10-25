@@ -51,17 +51,16 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  // ⚡ Bolt Performance Optimization: Memoize expensive filtering operation
-  // Expected impact: Prevents full dataset iteration on every render (e.g., when unrelated state changes)
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur
   const filteredData = useMemo(() => {
+    const lowerSearchText = searchText.toLowerCase();
     return data.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).
-        toLowerCase().
-        includes(searchText.toLowerCase());
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [data, searchText]);
+  }, [searchText, data]);
   return (
     <div>
       <div className="page-wrapper">
