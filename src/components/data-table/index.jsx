@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useMemo, useCallback, memo } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Skeleton } from "primereact/skeleton";
 import CustomPaginator from "./custom-paginator";
 import { Inbox } from "react-feather";
 
-const PrimeDataTable = ({
+const PrimeDataTable = memo(({
   column,
   data = [],
   totalRecords,
@@ -21,15 +21,20 @@ const PrimeDataTable = ({
   selection,
   onSelectionChange,
 }) => {
-  const skeletonRows   = Array(rows).fill({});
-  const totalPages     = Math.ceil(totalRecords / rows);
-  const startIndex     = (currentPage - 1) * rows;
-  const paginatedData  = loading ? skeletonRows : data.slice(startIndex, startIndex + rows);
+  const skeletonRows = useMemo(() => Array(rows).fill({}), [rows]);
+  const totalPages = Math.ceil(totalRecords / rows);
+  const startIndex = (currentPage - 1) * rows;
 
-  const onPageChange = (newPage) => setCurrentPage(newPage);
+  const paginatedData = useMemo(() => {
+    return loading ? skeletonRows : data.slice(startIndex, startIndex + rows);
+  }, [loading, skeletonRows, data, startIndex, rows]);
+
+  const onPageChange = useCallback((newPage) => {
+    setCurrentPage(newPage);
+  }, [setCurrentPage]);
 
   // ── Empty State ────────────────────────────────────────────────────────────
-  const customEmptyMessage = () => (
+  const customEmptyMessage = useCallback(() => (
     <div className="pdt-empty">
       <div className="pdt-empty-icon">
         <Inbox size={32} />
@@ -37,10 +42,10 @@ const PrimeDataTable = ({
       <h6 className="pdt-empty-title">No records found</h6>
       <p className="pdt-empty-sub">There are no records to display at the moment.</p>
     </div>
-  );
+  ), []);
 
   // ── DataTable props ────────────────────────────────────────────────────────
-  const getDataTableProps = () => {
+  const dataTableProps = useMemo(() => {
     const base = {
       value:        paginatedData,
       className:    "pdt-table",
@@ -57,7 +62,15 @@ const PrimeDataTable = ({
       return { ...base, selectionMode, selection, onSelectionChange };
     }
     return base;
-  };
+  }, [
+    paginatedData,
+    totalRecords,
+    customEmptyMessage,
+    footer,
+    selectionMode,
+    selection,
+    onSelectionChange
+  ]);
 
   return (
     <>
@@ -269,7 +282,7 @@ const PrimeDataTable = ({
         )}
 
         {/* ── DataTable ───────────────────────────────────────────────────── */}
-        <DataTable {...getDataTableProps()}>
+        <DataTable {...dataTableProps}>
           {column?.map((col, index) => (
             <Column
               key={col.field || index}
@@ -310,6 +323,8 @@ const PrimeDataTable = ({
       </div>
     </>
   );
-};
+});
+
+PrimeDataTable.displayName = "PrimeDataTable";
 
 export default PrimeDataTable;

@@ -160,13 +160,17 @@ const KopagPOS = () => {
     setCart(prevCart => prevCart.filter(item => item.id !== itemId));
   };
 
-  // Performance Optimization: Memoize cart totals to prevent recalculating on every re-render (e.g. typing customer name)
-  const cartTotals = useMemo(() => {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.10;
-    const total = subtotal + tax;
-    return { subtotal, tax, total };
+  const subtotal = useMemo(() => {
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   }, [cart]);
+
+  const tax = useMemo(() => {
+    return subtotal * 0.10;
+  }, [subtotal]);
+
+  const total = useMemo(() => {
+    return subtotal + tax;
+  }, [subtotal, tax]);
 
   const handleOrderClick = (order) => {
     setSelectedCustomer(order);
@@ -185,9 +189,20 @@ const KopagPOS = () => {
     setCart([]);
   };
 
-  const isItemInCart = (itemId) => {
-    return cart.some(item => item.id === itemId);
-  };
+  // ⚡ Bolt Performance Optimization: Convert O(N*M) loop inside render to O(N) lookup
+  const cartItemMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
+  const isItemInCart = useCallback((itemId) => {
+    return cartItemMap.has(itemId);
+  }, [cartItemMap]);
+
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(item => item.category === activeCategory);
+  }, [menuItems, activeCategory]);
 
   // Performance Optimization: Memoize filtered menu items to prevent redundant O(N) operations on every re-render (e.g. keystrokes in customerName input)
   const filteredMenuItems = useMemo(() => {
@@ -446,16 +461,16 @@ const KopagPOS = () => {
               <div className="summary-details">
                 <div className="summary-row d-flex justify-content-between mb-2">
                   <span className="text-muted">Subtotal</span>
-                  <span className="fw-semibold">${cartTotals.subtotal.toFixed(2)}</span>
+                  <span className="fw-semibold">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="summary-row d-flex justify-content-between mb-3">
                   <span className="text-muted">Tax (10%)</span>
-                  <span className="fw-semibold">${cartTotals.tax.toFixed(2)}</span>
+                  <span className="fw-semibold">${tax.toFixed(2)}</span>
                 </div>
                 <hr className="summary-divider" />
                 <div className="summary-total d-flex justify-content-between mb-4">
                   <span className="fw-bold fs-5">Total</span>
-                  <span className="fw-bold fs-5 total-amount">${cartTotals.total.toFixed(2)}</span>
+                  <span className="fw-bold fs-5 total-amount">${total.toFixed(2)}</span>
                 </div>
                 <button 
                   className="btn btn-primary btn-process w-100 py-3 fw-bold"
