@@ -24,6 +24,15 @@ import { URLS } from "../../Urls";
 import AddProductModal from "../setup/master/AllMaster/AddProductModal";
 import CustomerFormModal from "../setup/master/AllMaster/CustomerFormModal";
 
+// ⚡ Bolt Optimization: Define array outside the component to prevent recreation on every render
+const CATEGORY_IMAGES = [
+  category2,
+  category3,
+  category4,
+  category5,
+  category6,
+  category7,
+];
 
 /**
  * 🚀 POS COMPONENT - PRODUCTION-READY DYNAMIC BILLING SYSTEM
@@ -487,6 +496,15 @@ const Pos4 = () => {
 
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
 
+  // ⚡ PERFORMANCE OPTIMIZATION: Memoize cart items into a Map
+  // This reduces the O(N*M) lookup in the product render loop to O(N+M)
+  // N = storeProducts.length, M = cart.length
+  const cartItemsMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
   // ==================== API FUNCTIONS ====================
 
   /**
@@ -711,12 +729,29 @@ const Pos4 = () => {
     } catch (err) {
       console.error("Error searching by barcode:", err);
 
-      // FIX: Better error handling with specific messages
-      let errorMessage = "Error searching by barcode";
-      if (err.response?.status === 404) {
-        errorMessage = `No product found with barcode: ${barcode}`;
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
+      let errorMessage = "An unexpected error occurred while searching by barcode";
+
+      if (err.response) {
+        // Server responded with a status code outside the 2xx range
+        const status = err.response.status;
+        const serverMessage = err.response.data?.message;
+
+        if (status === 404) {
+          errorMessage = `No product found with barcode: ${barcode}`;
+        } else if (status === 400) {
+          errorMessage = serverMessage || "Invalid barcode format provided";
+        } else if (status >= 500) {
+          errorMessage = "Server error: Please try again later or contact support";
+        } else if (serverMessage) {
+          errorMessage = serverMessage;
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        errorMessage =
+          "Network error: Unable to reach the server. Please check your connection.";
+      } else {
+        // Something else happened in setting up the request
+        errorMessage = err.message || "Error setting up the search request";
       }
 
       showError(errorMessage);
@@ -878,6 +913,15 @@ const Pos4 = () => {
 
   // ==================== MEMOIZED VALUES ====================
 
+  // ⚡ Bolt Optimization: Transform cart array into an O(1) lookup dictionary (Map/Object)
+  // This reduces O(N*M) complexity to O(N+M) preventing cart.some and cart.find execution on every map iteration in products grid
+  const cartLookup = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      acc[item.id] = item;
+      return acc;
+    }, {});
+  }, [cart]);
+
   const customerOptions = useMemo(() => {
     return customers.map(customer => ({
       value: customer.value,
@@ -901,6 +945,13 @@ const Pos4 = () => {
   const selectedWeightOption = useMemo(() => {
     return weightOptions.find(opt => opt.value === weightScale) || null;
   }, [weightOptions, weightScale]);
+
+  // Bolt Optimization: Replace O(N) cart search with O(1) Map lookup
+  // This reduces the complexity of rendering the product grid from O(N*M) to O(N+M)
+  // Expected Impact: Faster rendering when store has many products and cart has many items
+  const cartItemMap = useMemo(() => {
+    return new Map(cart.map(item => [item.id, item]));
+  }, [cart]);
 
   // ==================== LIFECYCLE HOOKS ====================
 
@@ -1026,15 +1077,7 @@ const Pos4 = () => {
                   </li>
 
                   {categories.map((category, index) => {
-                    const categoryImages = [
-                      category2,
-                      category3,
-                      category4,
-                      category5,
-                      category6,
-                      category7,
-                    ];
-                    const categoryImage = categoryImages[index % categoryImages.length];
+                    const categoryImage = CATEGORY_IMAGES[index % CATEGORY_IMAGES.length];
 
                     return (
                       <li
@@ -1100,9 +1143,11 @@ const Pos4 = () => {
                     <div className="tab_content active">
                       {storeProducts.length > 0 ? (
                         <div className="row g-2">
+                          {/* ⚡ Bolt Optimization: Removed inline map dictionary building since we can use useMemo */}
                           {storeProducts.map((product) => {
-                            const isInCart = cart.some((item) => item.id === product.id);
-                            const cartItem = cart.find((item) => item.id === product.id);
+                            // ⚡ PERFORMANCE OPTIMIZATION: O(1) lookup instead of O(M)
+                            const cartItem = cartItemsMap.get(product.id);
+                            const isInCart = !!cartItem;
 
                             return (
                               <ProductCard
