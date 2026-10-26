@@ -138,12 +138,33 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
-  const stats = {
-    total:      totalRecords,
-    dispatched: data.filter((t) => t.status && t.status.toLowerCase() === "dispatched").length,
-    inProgress: data.filter((t) => t.status && ["pending", "approved", "approve"].includes(t.status.toLowerCase())).length,
-    draft:      data.filter((t) => t.status && t.status.toLowerCase() === "draft").length,
-  };
+  const stats = useMemo(() => {
+    // ⚡ Bolt: Single-pass iteration to calculate stats instead of multiple .filter().length
+    // This reduces array passes from O(3N) to O(N) and prevents unnecessary allocations
+    // on every render, improving performance when dealing with large datasets.
+    let dispatched = 0;
+    let inProgress = 0;
+    let draft = 0;
+
+    for (const t of data) {
+      if (!t.status) continue;
+      const s = t.status.toLowerCase();
+      if (s === "dispatched") {
+        dispatched++;
+      } else if (s === "pending" || s === "approved" || s === "approve") {
+        inProgress++;
+      } else if (s === "draft") {
+        draft++;
+      }
+    }
+
+    return {
+      total: totalRecords,
+      dispatched,
+      inProgress,
+      draft,
+    };
+  }, [data, totalRecords]);
 
   return (
     <>
