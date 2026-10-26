@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import axios from "axios";
@@ -607,11 +607,14 @@ const PurchaseReturns = () => {
     }
   };
 
-  const filteredPurchaseOrders = purchaseOrders.filter((o) =>
-    !searchInvoice ||
-    o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
-    o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
-  );
+  // Performance optimization: Memoize filtering to prevent recalculation on unrelated re-renders
+  const filteredPurchaseOrders = useMemo(() => {
+    return purchaseOrders.filter((o) =>
+      !searchInvoice ||
+      o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
+      o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
+    );
+  }, [purchaseOrders, searchInvoice]);
 
   const calculateTotals = () => {
     const valid  = returnItems.filter((i) => i.productId || i.id);
