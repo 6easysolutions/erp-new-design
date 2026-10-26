@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { URLS } from "../../../Urls";
@@ -449,12 +449,19 @@ const LeavesRules = () => {
       <span className="badge bg-warning">Unpaid</span>;
   };
 
-  const filteredData = leavesData.filter(
-    (rule) =>
-      rule.leaveTypeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rule.shortCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rule.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Optimization: Memoize filtered data and extract toLowerCase() outside the loop
+  // Adds early return to bypass array iterations for empty search queries
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return leavesData;
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return leavesData.filter(
+      (rule) =>
+        rule.leaveTypeName?.toLowerCase().includes(lowerSearchTerm) ||
+        rule.shortCode?.toLowerCase().includes(lowerSearchTerm) ||
+        rule.description?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [leavesData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
