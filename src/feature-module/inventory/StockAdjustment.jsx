@@ -437,8 +437,15 @@ const StockAdjustment = () => {
     },
   ];
 
-  const addCount    = adjustmentHistory.filter((h) => h.actionType === "ADD").length;
-  const removeCount = adjustmentHistory.filter((h) => h.actionType !== "ADD").length;
+  const { addCount, removeCount } = useMemo(() => {
+    let add = 0;
+    let remove = 0;
+    for (const h of adjustmentHistory) {
+      if (h.actionType === "ADD") add++;
+      else remove++;
+    }
+    return { addCount: add, removeCount: remove };
+  }, [adjustmentHistory]);
 
   return (
     <>

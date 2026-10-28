@@ -86,13 +86,27 @@ const InventoryCounts = () => {
   const endRecord    = Math.min(safePage * rows, filteredSessions.length);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => ({
-    total:     sessions.length,
-    draft:     sessions.filter((s) => s.status === "Draft").length,
-    progress:  sessions.filter((s) => s.status === "In Progress").length,
-    submitted: sessions.filter((s) => s.status === "Submitted").length,
-    completed: sessions.filter((s) => s.status === "Completed").length,
-  }), [sessions]);
+  const stats = useMemo(() => {
+    let draft = 0;
+    let progress = 0;
+    let submitted = 0;
+    let completed = 0;
+
+    for (const s of sessions) {
+      if (s.status === "Draft") draft++;
+      else if (s.status === "In Progress") progress++;
+      else if (s.status === "Submitted") submitted++;
+      else if (s.status === "Completed") completed++;
+    }
+
+    return {
+      total: sessions.length,
+      draft,
+      progress,
+      submitted,
+      completed,
+    };
+  }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
   const getPageNumbers = () => {
