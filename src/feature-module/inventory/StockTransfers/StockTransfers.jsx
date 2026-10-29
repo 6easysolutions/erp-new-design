@@ -134,16 +134,29 @@ const StockTransferList = () => {
     fetchTransfers();
   }, [page, search]);
 
-  const filtered = useMemo(() => data.filter((t) => {
-    return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
-  }), [data, statusFilter]);
+  const filtered = useMemo(() => {
+    if (statusFilter === "All") return data;
+    const lowerStatusFilter = statusFilter.toLowerCase();
+    return data.filter((t) => t.status && t.status.toLowerCase() === lowerStatusFilter);
+  }, [data, statusFilter]);
 
-  const stats = {
-    total:      totalRecords,
-    dispatched: data.filter((t) => t.status && t.status.toLowerCase() === "dispatched").length,
-    inProgress: data.filter((t) => t.status && ["pending", "approved", "approve"].includes(t.status.toLowerCase())).length,
-    draft:      data.filter((t) => t.status && t.status.toLowerCase() === "draft").length,
-  };
+  const stats = useMemo(() => {
+    let dispatched = 0, inProgress = 0, draft = 0;
+    for (const t of data) {
+      if (t.status) {
+        const s = t.status.toLowerCase();
+        if (s === "dispatched") dispatched++;
+        else if (s === "pending" || s === "approved" || s === "approve") inProgress++;
+        else if (s === "draft") draft++;
+      }
+    }
+    return {
+      total: totalRecords,
+      dispatched,
+      inProgress,
+      draft,
+    };
+  }, [data, totalRecords]);
 
   return (
     <>
