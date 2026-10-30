@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -131,9 +131,13 @@ const ItemType = () => {
         }
     };
 
-    const filteredData  = itemTypesData.filter(i =>
-        i.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredData = useMemo(() => {
+        if (!searchTerm) return itemTypesData;
+        const lowerSearch = searchTerm.toLowerCase();
+        return itemTypesData.filter(i =>
+            i.name.toLowerCase().includes(lowerSearch)
+        );
+    }, [itemTypesData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);
     const startIndex    = (currentPage - 1) * rowsPerPage;
     const paginatedData = filteredData.slice(startIndex, startIndex + rowsPerPage);
