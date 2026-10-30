@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router';
@@ -216,10 +216,14 @@ const Warehouse = () => {
     };
 
     // Filter data based on search term
-    const filteredData = warehouseData.filter(item =>
-        (item.warehouseName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.warehouseType || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredData = useMemo(() => {
+        if (!searchTerm) return warehouseData;
+        const lowerSearch = searchTerm.toLowerCase();
+        return warehouseData.filter(item =>
+            (item.warehouseName || '').toLowerCase().includes(lowerSearch) ||
+            (item.warehouseType || '').toLowerCase().includes(lowerSearch)
+        );
+    }, [warehouseData, searchTerm]);
 
     // Pagination logic
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
