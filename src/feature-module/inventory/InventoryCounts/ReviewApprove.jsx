@@ -66,21 +66,24 @@ const ReviewApprove = () => {
         { id: 12, productId: 112, name: "Pentax Camera", sku: "PT013", systemQty: 22, counted: 19, variance: -3, variancePercent: -13.64, notes: "Damaged units" }
     ]);
 
-    // Filter to show only variances
-    const varianceItems = variances.filter(v => v.variance !== 0);
-
     // Filtered Data
     const filteredVariances = useMemo(() => {
-        return varianceItems.filter(v => {
-            const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                v.sku.toLowerCase().includes(searchQuery.toLowerCase());
+        // ⚡ Bolt Optimization: Extract redundant toLowerCase() outside the loop
+        const lowerSearchQuery = searchQuery.toLowerCase();
+
+        return variances.filter(v => {
+            // ⚡ Bolt Optimization: Combined multiple passes into a single filter
+            if (v.variance === 0) return false;
+
+            const matchesSearch = v.name.toLowerCase().includes(lowerSearchQuery) ||
+                v.sku.toLowerCase().includes(lowerSearchQuery);
             const matchesFilter = !varianceFilter || (
                 (varianceFilter === 'over' && v.variance > 0) ||
                 (varianceFilter === 'under' && v.variance < 0)
             );
             return matchesSearch && matchesFilter;
         });
-    }, [searchQuery, varianceFilter]);
+    }, [searchQuery, varianceFilter, variances]);
 
     // --- ACTIONS ---
     const handleEditClick = (variance) => {
