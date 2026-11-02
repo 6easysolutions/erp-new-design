@@ -607,12 +607,14 @@ const PurchaseReturns = () => {
     }
   };
 
-  // ⚡ Bolt: Memoized filtered purchase orders to prevent expensive array filtering on unrelated re-renders
-  const filteredPurchaseOrders = useMemo(() => purchaseOrders.filter((o) =>
-    !searchInvoice ||
-    o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
-    o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
-  ), [purchaseOrders, searchInvoice]);
+  // Performance optimization: Memoize filtering to prevent recalculation on unrelated re-renders
+  const filteredPurchaseOrders = useMemo(() => {
+    return purchaseOrders.filter((o) =>
+      !searchInvoice ||
+      o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
+      o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
+    );
+  }, [purchaseOrders, searchInvoice]);
 
   // ⚡ Bolt: Memoized totals calculation to avoid repeated iterations over return items on every render
   const totals = useMemo(() => {
