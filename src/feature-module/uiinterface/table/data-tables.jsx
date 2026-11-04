@@ -51,17 +51,16 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  // Memoize the filtered data to prevent unnecessary recalculations on unrelated re-renders.
-  // This is a common anti-pattern in the codebase that can cause performance degradation.
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur
   const filteredData = useMemo(() => {
+    const lowerSearchText = searchText.toLowerCase();
     return data.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).
-        toLowerCase().
-        includes(searchText.toLowerCase());
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [data, searchText]);
+  }, [searchText, data]);
   return (
     <div>
       <div className="page-wrapper">
