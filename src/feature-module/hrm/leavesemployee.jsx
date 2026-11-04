@@ -118,14 +118,14 @@ const LeavesEmployee = () => {
 
   const [searchText] = useState("");
 
-  // Optimization: Memoize filtered data, early return, and extract toLowerCase()
+  // ⚡ Bolt Performance Optimization: Memoize expensive filtering operation
+  // Expected impact: Prevents full dataset iteration on every render (e.g., when unrelated state changes)
   const filteredData = useMemo(() => {
-    if (!searchText) return leavesEmployeedata;
-
-    const lowerSearchText = searchText.toLowerCase();
     return leavesEmployeedata.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).toLowerCase().includes(lowerSearchText);
+        return String(entry[key]).
+        toLowerCase().
+        includes(searchText.toLowerCase());
       });
     });
   }, [leavesEmployeedata, searchText]);
