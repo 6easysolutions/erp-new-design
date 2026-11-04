@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -24,6 +24,16 @@ import { URLS } from "../../Urls";
 import AddProductModal from "../setup/master/AllMaster/AddProductModal";
 import CustomerFormModal from "../setup/master/AllMaster/CustomerFormModal";
 
+// ⚡ Bolt Optimization: Define array outside the component to prevent recreation on every render
+const CATEGORY_IMAGES = [
+  category2,
+  category3,
+  category4,
+  category5,
+  category6,
+  category7,
+];
+
 /**
  * 🚀 POS COMPONENT - PRODUCTION-READY DYNAMIC BILLING SYSTEM
  * Features:
@@ -34,7 +44,187 @@ import CustomerFormModal from "../setup/master/AllMaster/CustomerFormModal";
  * - Complete order management
  * - Integrated AddProduct and CustomerForm modals
  */
+
+const ProductCard = React.memo(({ product, isInCart, cartItemQty, onAddToCart }) => {
+  return (
+    <div className="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+      <div
+        className={`product-card ${isInCart ? "in-cart" : ""}`}
+        onClick={() => onAddToCart(product)}
+        style={{
+          position: "relative",
+          cursor: "pointer",
+          border: "1px solid #e9ecef",
+          borderRadius: "8px",
+          padding: "8px",
+          transition: "all 0.2s ease",
+          backgroundColor: isInCart ? "#f0f9ff" : "#fff",
+          borderColor: isInCart ? "#3b82f6" : "#e9ecef",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+          e.currentTarget.style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
+        {/* In Cart Badge */}
+        {isInCart && (
+          <div
+            style={{
+              position: "absolute",
+              top: "4px",
+              right: "4px",
+              backgroundColor: "#3b82f6",
+              color: "white",
+              borderRadius: "12px",
+              padding: "2px 6px",
+              fontSize: "10px",
+              fontWeight: "bold",
+              zIndex: 10,
+            }}
+          >
+            {cartItemQty}x
+          </div>
+        )}
+
+        {/* Product Image */}
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            paddingTop: "100%",
+            borderRadius: "6px",
+            overflow: "hidden",
+            backgroundColor: "#f8f9fa",
+            marginBottom: "6px",
+          }}
+        >
+          {product.product_images && product.product_images.length > 0 ? (
+            <img
+              alt={product.name}
+              src={`${URLS.ImageUrl}${product.product_images[0]}`}
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/150?text=No+Image";
+              }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#e9ecef",
+              }}
+            >
+              <i
+                className="ti ti-photo"
+                style={{
+                  fontSize: "32px",
+                  color: "#adb5bd",
+                }}
+              ></i>
+            </div>
+          )}
+        </div>
+
+        {/* Product Info */}
+        <div>
+          <h6
+            style={{
+              fontSize: "11px",
+              fontWeight: "600",
+              margin: "0 0 4px 0",
+              lineHeight: "1.3",
+              height: "28px",
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+            title={product.name}
+          >
+            {product.name}
+          </h6>
+
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  color: "#059669",
+                }}
+              >
+                ₹{product.selling_price || product.purchase_price || "0"}
+              </div>
+              {product.mrp && product.mrp !== product.selling_price && (
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#6c757d",
+                    textDecoration: "line-through",
+                  }}
+                >
+                  ₹{product.mrp}
+                </div>
+              )}
+            </div>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "#6c757d",
+                backgroundColor: "#f8f9fa",
+                padding: "2px 6px",
+                borderRadius: "4px",
+              }}
+            >
+              {product.quantity || "0"} pc
+            </div>
+          </div>
+
+          {/* Add Button */}
+          <button
+            className="btn btn-sm btn-primary w-100 mt-2"
+            style={{
+              fontSize: "10px",
+              padding: "4px 8px",
+              backgroundColor: isInCart ? "#059669" : "#3b82f6",
+              borderColor: isInCart ? "#059669" : "#3b82f6",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+          >
+            <i
+              className={`ti ${isInCart ? "ti-check" : "ti-plus"} me-1`}
+            ></i>
+            {isInCart ? "Added" : "Add"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 const Pos4 = () => {
+
   // ==================== STATE MANAGEMENT ====================
 
   const [activeTab, setActiveTab] = useState("all");
@@ -306,6 +496,15 @@ const Pos4 = () => {
 
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
 
+  // ⚡ PERFORMANCE OPTIMIZATION: Memoize cart items into a Map
+  // This reduces the O(N*M) lookup in the product render loop to O(N+M)
+  // N = storeProducts.length, M = cart.length
+  const cartItemsMap = useMemo(() => {
+    const map = new Map();
+    cart.forEach(item => map.set(item.id, item));
+    return map;
+  }, [cart]);
+
   // ==================== API FUNCTIONS ====================
 
   /**
@@ -530,12 +729,29 @@ const Pos4 = () => {
     } catch (err) {
       console.error("Error searching by barcode:", err);
 
-      // FIX: Better error handling with specific messages
-      let errorMessage = "Error searching by barcode";
-      if (err.response?.status === 404) {
-        errorMessage = `No product found with barcode: ${barcode}`;
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
+      let errorMessage = "An unexpected error occurred while searching by barcode";
+
+      if (err.response) {
+        // Server responded with a status code outside the 2xx range
+        const status = err.response.status;
+        const serverMessage = err.response.data?.message;
+
+        if (status === 404) {
+          errorMessage = `No product found with barcode: ${barcode}`;
+        } else if (status === 400) {
+          errorMessage = serverMessage || "Invalid barcode format provided";
+        } else if (status >= 500) {
+          errorMessage = "Server error: Please try again later or contact support";
+        } else if (serverMessage) {
+          errorMessage = serverMessage;
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        errorMessage =
+          "Network error: Unable to reach the server. Please check your connection.";
+      } else {
+        // Something else happened in setting up the request
+        errorMessage = err.message || "Error setting up the search request";
       }
 
       showError(errorMessage);
@@ -697,6 +913,15 @@ const Pos4 = () => {
 
   // ==================== MEMOIZED VALUES ====================
 
+  // ⚡ Bolt Optimization: Transform cart array into an O(1) lookup dictionary (Map/Object)
+  // This reduces O(N*M) complexity to O(N+M) preventing cart.some and cart.find execution on every map iteration in products grid
+  const cartLookup = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      acc[item.id] = item;
+      return acc;
+    }, {});
+  }, [cart]);
+
   const customerOptions = useMemo(() => {
     return customers.map(customer => ({
       value: customer.value,
@@ -720,6 +945,13 @@ const Pos4 = () => {
   const selectedWeightOption = useMemo(() => {
     return weightOptions.find(opt => opt.value === weightScale) || null;
   }, [weightOptions, weightScale]);
+
+  // Bolt Optimization: Replace O(N) cart search with O(1) Map lookup
+  // This reduces the complexity of rendering the product grid from O(N*M) to O(N+M)
+  // Expected Impact: Faster rendering when store has many products and cart has many items
+  const cartItemMap = useMemo(() => {
+    return new Map(cart.map(item => [item.id, item]));
+  }, [cart]);
 
   // ==================== LIFECYCLE HOOKS ====================
 
@@ -845,15 +1077,7 @@ const Pos4 = () => {
                   </li>
 
                   {categories.map((category, index) => {
-                    const categoryImages = [
-                      category2,
-                      category3,
-                      category4,
-                      category5,
-                      category6,
-                      category7,
-                    ];
-                    const categoryImage = categoryImages[index % categoryImages.length];
+                    const categoryImage = CATEGORY_IMAGES[index % CATEGORY_IMAGES.length];
 
                     return (
                       <li
@@ -919,189 +1143,23 @@ const Pos4 = () => {
                     <div className="tab_content active">
                       {storeProducts.length > 0 ? (
                         <div className="row g-2">
+                          {/* ⚡ Bolt Optimization: Removed inline map dictionary building since we can use useMemo */}
                           {storeProducts.map((product) => {
-                            const isInCart = cart.some((item) => item.id === product.id);
-                            const cartItem = cart.find((item) => item.id === product.id);
+                            // ⚡ PERFORMANCE OPTIMIZATION: O(1) lookup instead of O(M)
+                            const cartItem = cartItemsMap.get(product.id);
+                            const isInCart = !!cartItem;
 
                             return (
-                              <div
+                              <ProductCard
                                 key={product.id}
-                                className="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2"
-                              >
-                                <div
-                                  className={`product-card ${isInCart ? "in-cart" : ""}`}
-                                  onClick={() => addToCart(product)}
-                                  style={{
-                                    position: "relative",
-                                    cursor: "pointer",
-                                    border: "1px solid #e9ecef",
-                                    borderRadius: "8px",
-                                    padding: "8px",
-                                    transition: "all 0.2s ease",
-                                    backgroundColor: isInCart ? "#f0f9ff" : "#fff",
-                                    borderColor: isInCart ? "#3b82f6" : "#e9ecef",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-                                    e.currentTarget.style.transform = "translateY(-2px)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.boxShadow = "none";
-                                    e.currentTarget.style.transform = "translateY(0)";
-                                  }}
-                                >
-                                  {/* In Cart Badge */}
-                                  {isInCart && (
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: "4px",
-                                        right: "4px",
-                                        backgroundColor: "#3b82f6",
-                                        color: "white",
-                                        borderRadius: "12px",
-                                        padding: "2px 6px",
-                                        fontSize: "10px",
-                                        fontWeight: "bold",
-                                        zIndex: 10,
-                                      }}
-                                    >
-                                      {cartItem?.quantity}x
-                                    </div>
-                                  )}
-
-                                  {/* Product Image */}
-                                  <div
-                                    style={{
-                                      position: "relative",
-                                      width: "100%",
-                                      paddingTop: "100%",
-                                      borderRadius: "6px",
-                                      overflow: "hidden",
-                                      backgroundColor: "#f8f9fa",
-                                      marginBottom: "6px",
-                                    }}
-                                  >
-                                    {product.product_images && product.product_images.length > 0 ? (
-                                      <img
-                                        alt={product.name}
-                                        src={`${URLS.ImageUrl}${product.product_images[0]}`}
-                                        onError={(e) => {
-                                          e.target.src = "https://via.placeholder.com/150?text=No+Image";
-                                        }}
-                                        style={{
-                                          position: "absolute",
-                                          top: 0,
-                                          left: 0,
-                                          width: "100%",
-                                          height: "100%",
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    ) : (
-                                      <div
-                                        style={{
-                                          position: "absolute",
-                                          top: 0,
-                                          left: 0,
-                                          width: "100%",
-                                          height: "100%",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          backgroundColor: "#e9ecef",
-                                        }}
-                                      >
-                                        <i
-                                          className="ti ti-photo"
-                                          style={{
-                                            fontSize: "32px",
-                                            color: "#adb5bd",
-                                          }}
-                                        ></i>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Product Info */}
-                                  <div>
-                                    <h6
-                                      style={{
-                                        fontSize: "11px",
-                                        fontWeight: "600",
-                                        margin: "0 0 4px 0",
-                                        lineHeight: "1.3",
-                                        height: "28px",
-                                        overflow: "hidden",
-                                        display: "-webkit-box",
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: "vertical",
-                                      }}
-                                      title={product.name}
-                                    >
-                                      {product.name}
-                                    </h6>
-
-                                    <div className="d-flex justify-content-between align-items-center">
-                                      <div>
-                                        <div
-                                          style={{
-                                            fontSize: "13px",
-                                            fontWeight: "bold",
-                                            color: "#059669",
-                                          }}
-                                        >
-                                          ₹{product.selling_price || product.purchase_price || "0"}
-                                        </div>
-                                        {product.mrp && product.mrp !== product.selling_price && (
-                                          <div
-                                            style={{
-                                              fontSize: "10px",
-                                              color: "#6c757d",
-                                              textDecoration: "line-through",
-                                            }}
-                                          >
-                                            ₹{product.mrp}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div
-                                        style={{
-                                          fontSize: "10px",
-                                          color: "#6c757d",
-                                          backgroundColor: "#f8f9fa",
-                                          padding: "2px 6px",
-                                          borderRadius: "4px",
-                                        }}
-                                      >
-                                        {product.quantity || "0"} pc
-                                      </div>
-                                    </div>
-
-                                    {/* Add Button */}
-                                    <button
-                                      className="btn btn-sm btn-primary w-100 mt-2"
-                                      style={{
-                                        fontSize: "10px",
-                                        padding: "4px 8px",
-                                        backgroundColor: isInCart ? "#059669" : "#3b82f6",
-                                        borderColor: isInCart ? "#059669" : "#3b82f6",
-                                      }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        addToCart(product);
-                                      }}
-                                    >
-                                      <i
-                                        className={`ti ${isInCart ? "ti-check" : "ti-plus"} me-1`}
-                                      ></i>
-                                      {isInCart ? "Added" : "Add"}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
+                                product={product}
+                                isInCart={isInCart}
+                                cartItemQty={cartItem?.quantity}
+                                onAddToCart={addToCart}
+                              />
                             );
                           })}
+
                         </div>
                       ) : (
                         !loading && (
