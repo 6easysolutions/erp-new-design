@@ -23,19 +23,18 @@ const Holidays = () => {
     setSearchQuery(value);
   };
 
-  // ⚡ Bolt Performance Optimization:
-  // 1. Memoized the filtering operation to prevent re-running on every render unless `datas` or `searchText` changes.
-  // 2. Extracted `searchText.toLowerCase()` outside of the loop to avoid redundant O(N*M) string allocations.
+  // Optimization: Memoize filtered data, extract toLowerCase() to prevent O(N*M) redundant string operations,
+  // iterate over values directly, and return early if searchText is empty.
   const filteredData = useMemo(() => {
-    const lowercasedSearchText = searchText.toLowerCase();
+    if (!searchText) return datas;
+
+    const lowerSearchText = searchText.toLowerCase();
     return datas.filter((entry) => {
-      return Object.keys(entry).some((key) => {
-        return String(entry[key])
-          .toLowerCase()
-          .includes(lowercasedSearchText);
+      return Object.values(entry).some((val) => {
+        return String(val).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [datas, searchText]);
+  }, [searchText, datas]);
 
   const columns = [
   {
