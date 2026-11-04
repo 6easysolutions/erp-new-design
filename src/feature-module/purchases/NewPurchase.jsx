@@ -4,6 +4,8 @@ import Select from "react-select";
 
 import { URLS } from "../../Urls";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import AddProductModal from "../setup/master/AllMaster/AddProductModal";
 import SupplierFormModal from "../setup/master/AllMaster/SupplierFormModal";
 import {
@@ -230,7 +232,7 @@ const AddChargesModal = React.memo(
       (e) => {
         e.preventDefault();
         if (!formData.charges_name || !formData.amount) {
-          alert("Please fill in all required fields");
+          toast.warn("Please fill in all required fields");
           return;
         }
         onAdd(formData);
@@ -642,7 +644,7 @@ const NewPurchase = () => {
     }
     setCharges(draft.charges?.length ? draft.charges.map((c, i) => ({ id: Date.now() + i, ...c })) : []);
     setShowDraftsModal(false);
-    alert("Draft loaded successfully!");
+    toast.success("Draft loaded successfully!");
   }, []);
 
   const searchProducts = useCallback(async (query) => {
@@ -739,9 +741,9 @@ const NewPurchase = () => {
   }, [purchaseItems, charges, gstType]);
 
   const handleSubmit = useCallback(async (isDraft = false) => {
-    if (!selectedSupplier) return alert("Please select a supplier");
-    if (!purchaseDate) return alert("Please select purchase date");
-    if (!purchaseItems.length) return alert("Please add at least one product");
+    if (!selectedSupplier) return toast.warn("Please select a supplier");
+    if (!purchaseDate) return toast.warn("Please select purchase date");
+    if (!purchaseItems.length) return toast.warn("Please add at least one product");
 
     setIsSubmitting(true);
     setError(null);
@@ -782,7 +784,7 @@ const NewPurchase = () => {
 
       const response = await axios.post(URLS.NewPurchaseOrder, payload, config);
       if (response.data.success) {
-        alert(isDraft ? "Draft saved successfully!" : "Purchase order created successfully!");
+        toast.success(isDraft ? "Draft saved successfully!" : "Purchase order created successfully!");
         setPurchaseItems([]);
         setCharges([]);
         setSelectedSupplier(null);
@@ -793,12 +795,12 @@ const NewPurchase = () => {
         setSearchQuery("");
         setSearchResults([]);
       } else {
-        alert("Failed to create purchase order");
+        toast.error("Failed to create purchase order");
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
       setError(`Failed to submit purchase order: ${msg}`);
-      alert(`Error: ${msg}`);
+      toast.error(`Error: ${msg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -819,6 +821,7 @@ const NewPurchase = () => {
   // ── Render ──────────────────────────────────────────────
   return (
     <div className="pms-root">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="pms-main-card">
 
         {/* Top Bar */}
