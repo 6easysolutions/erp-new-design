@@ -59,22 +59,16 @@ const SalesList = () => {
     setSearchText(e.target.value);
   };
   const [searchText, setSearchText] = useState("");
-
-  // ⚡ Bolt: Memoized array filtering to prevent synchronous computation during re-renders
-  // 💡 What: Wrapped `saleslistdata.filter` with `useMemo`.
-  // 🎯 Why: Avoids blocking the main thread during unrelated state updates (e.g., date pickers, dropdowns).
-  // 📊 Impact: Significantly reduces render time on components with heavy dataset filtering.
-  // 🔬 Measurement: Verify with React DevTools Profiler; observe reduced render duration when toggling filters.
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur (like toggling filters)
   const filteredData = useMemo(() => {
+    const lowerSearchText = searchText.toLowerCase();
     return saleslistdata.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).
-        toLowerCase().
-        includes(searchText.toLowerCase());
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [saleslistdata, searchText]);
-
+  }, [searchText, saleslistdata]);
   const oldandlatestvalue = [
   { value: "Sort by Date", label: "Sort by Date" },
   { value: "07 09 23", label: "07 09 23" },
