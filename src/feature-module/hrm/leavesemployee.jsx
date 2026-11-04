@@ -117,8 +117,9 @@ const LeavesEmployee = () => {
 
 
   const [searchText] = useState("");
-  // ⚡ Bolt: Memoize filtered data to prevent O(N*M) search operations on every render
-  // Expected impact: Eliminates unnecessary array filtering when other state changes
+
+  // ⚡ Bolt Performance Optimization: Memoize expensive filtering operation
+  // Expected impact: Prevents full dataset iteration on every render (e.g., when unrelated state changes)
   const filteredData = useMemo(() => {
     return leavesEmployeedata.filter((entry) => {
       return Object.keys(entry).some((key) => {
