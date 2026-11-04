@@ -51,16 +51,16 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  // ⚡ Bolt: Memoize filtered data and extract `toLowerCase()` to prevent redundant string allocations per cell evaluation (O(N*M)).
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur
   const filteredData = useMemo(() => {
-    const searchLower = searchText.toLowerCase();
+    const lowerSearchText = searchText.toLowerCase();
     return data.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).toLowerCase().includes(searchLower);
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [data, searchText]);
-
+  }, [searchText, data]);
   return (
     <div>
       <div className="page-wrapper">
