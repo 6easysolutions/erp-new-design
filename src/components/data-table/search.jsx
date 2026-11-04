@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { debounce } from "../../utils/debounce";
 
 
@@ -7,7 +7,10 @@ import { debounce } from "../../utils/debounce";
 
 
 const SearchFromApi = ({ callback }) => {
-  const dataApi = debounce(callback, 700);
+  // ⚡ Bolt Optimization: Memoize the debounced callback so the internal timeout is preserved across re-renders
+  // This prevents multiple API calls being triggered if the component re-renders while typing.
+  const dataApi = useMemo(() => debounce(callback, 700), [callback]);
+
   const handleChange = (e) => {
     dataApi(e.target.value?.trim());
   };
