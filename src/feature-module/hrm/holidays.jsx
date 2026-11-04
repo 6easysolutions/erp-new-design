@@ -23,23 +23,18 @@ const Holidays = () => {
     setSearchQuery(value);
   };
 
-  // ⚡ Bolt: Optimized search filter
-  // 💡 What: Extracted toLowerCase() out of inner loops and wrapped in useMemo
-  // 🎯 Why: Prevent O(N*M) re-evaluations and unnecessary calculations during unrelated re-renders
-  // 📊 Impact: O(1) lowercasing instead of O(N*M), preventing performance degradation
-  // 🔬 Measurement: Observe rendering performance when filtering holidays data
+  // Optimization: Memoize filtered data, extract toLowerCase() to prevent O(N*M) redundant string operations,
+  // iterate over values directly, and return early if searchText is empty.
   const filteredData = useMemo(() => {
-    const lowercasedSearch = searchText.toLowerCase();
-    if (!lowercasedSearch) return datas;
+    if (!searchText) return datas;
 
+    const lowerSearchText = searchText.toLowerCase();
     return datas.filter((entry) => {
-      return Object.keys(entry).some((key) => {
-        return String(entry[key]).
-        toLowerCase().
-        includes(lowercasedSearch);
+      return Object.values(entry).some((val) => {
+        return String(val).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [datas, searchText]);
+  }, [searchText, datas]);
 
   const columns = [
   {

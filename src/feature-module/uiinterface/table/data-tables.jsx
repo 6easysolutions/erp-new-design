@@ -51,23 +51,16 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  // ⚡ Bolt: Optimized search filter
-  // 💡 What: Extracted toLowerCase() out of inner loops and wrapped in useMemo
-  // 🎯 Why: Prevent O(N*M) re-evaluations and unnecessary calculations during unrelated re-renders
-  // 📊 Impact: O(1) lowercasing instead of O(N*M), preventing performance degradation
-  // 🔬 Measurement: Type into search box to see smoother UI response
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur
   const filteredData = useMemo(() => {
-    const lowercasedSearch = searchText.toLowerCase();
-    if (!lowercasedSearch) return data;
-
+    const lowerSearchText = searchText.toLowerCase();
     return data.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).
-        toLowerCase().
-        includes(lowercasedSearch);
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [data, searchText]);
+  }, [searchText, data]);
   return (
     <div>
       <div className="page-wrapper">
