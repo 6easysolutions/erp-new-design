@@ -66,15 +66,25 @@ const InventoryCounts = () => {
 
   // ── Filtered + paginated ───────────────────────────────────────────────────
   const filteredSessions = useMemo(() => {
+    // ⚡ Bolt: Bypass array iterations completely for empty search and no status filter
+    if (!searchQuery && statusFilter === "all") return sessions;
+
+    // ⚡ Bolt: Extract redundant search query string conversion out of the inner loop
+    const q = searchQuery.toLowerCase();
+
     return sessions.filter((s) => {
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
+      const matchStatus = statusFilter === "all" || s.status === statusFilter;
+      // ⚡ Bolt: Early return if status doesn't match, bypassing search string operations
+      if (!matchStatus) return false;
+
+      if (!q) return true;
+
+      return (
         (s.sessionCode || "").toLowerCase().includes(q) ||
         (String(s.storeId) || "").toLowerCase().includes(q) ||
         (s.categoryName || "").toLowerCase().includes(q) ||
-        (s.countType   || "").toLowerCase().includes(q);
-      const matchStatus = statusFilter === "all" || s.status === statusFilter;
-      return matchSearch && matchStatus;
+        (s.countType   || "").toLowerCase().includes(q)
+      );
     });
   }, [sessions, searchQuery, statusFilter]);
 
@@ -86,24 +96,18 @@ const InventoryCounts = () => {
   const endRecord    = Math.min(safePage * rows, filteredSessions.length);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  // Bolt Optimization: Calculate multiple derived statistics from an array using a single-pass iteration
-  // to reduce time complexity from O(4N) to O(N).
   const stats = useMemo(() => {
-    let draft = 0, progress = 0, submitted = 0, completed = 0;
-    for (let i = 0; i < sessions.length; i++) {
-      const s = sessions[i];
-      if (s.status === "Draft") draft++;
-      else if (s.status === "In Progress") progress++;
-      else if (s.status === "Submitted") submitted++;
-      else if (s.status === "Completed") completed++;
-    }
-    return {
-      total: sessions.length,
-      draft,
-      progress,
-      submitted,
-      completed,
-    };
+    // ⚡ Bolt: Single-pass iteration to calculate stats instead of multiple .filter() calls
+    return sessions.reduce(
+      (acc, s) => {
+        if (s.status === "Draft") acc.draft++;
+        else if (s.status === "In Progress") acc.progress++;
+        else if (s.status === "Submitted") acc.submitted++;
+        else if (s.status === "Completed") acc.completed++;
+        return acc;
+      },
+      { total: sessions.length, draft: 0, progress: 0, submitted: 0, completed: 0 }
+    );
   }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
@@ -742,13 +746,15 @@ const InventoryCounts = () => {
                       paginated.map((session) => {
                         const statusMeta      = getStatusMeta(session.status);
                         const itemsArr        = Array.isArray(session.items) ? session.items : [];
-                        // Bolt Optimization: Avoid intermediate array allocations inside React render loops
+
+                        // ⚡ Bolt: Replaced itemsArr.filter().length with a single loop to prevent intermediate array allocation during every row render
                         let approvedCnt = 0;
-                        for (let i = 0; i < itemsArr.length; i++) {
-                          if (itemsArr[i].approvalStatus === "approved" || itemsArr[i].approvalStatus === "complete") {
+                        for (const i of itemsArr) {
+                          if (i.approvalStatus === "approved" || i.approvalStatus === "complete") {
                             approvedCnt++;
                           }
                         }
+
                         const total           = session.totalItems ?? itemsArr.length;
                         const progressPct     = total === 0 ? 0 : Math.round((approvedCnt / total) * 100);
                         const progressText    = `${approvedCnt} / ${total}`;

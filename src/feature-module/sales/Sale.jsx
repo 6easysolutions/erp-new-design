@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { URLS } from '../../Urls';
+import { debounce } from '../../utils/debounce';
 
 const Sale = () => {
     const [saleMode, setSaleMode] = useState('cash'); // 'cash' | 'credit' | 'return'
@@ -90,12 +91,6 @@ const Sale = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (response.data && response.data.data) {
-                setSearchResults(response.data.data);
-                setShowDropdown(true);
-            } else {
-                setSearchResults([]);
-            }
         } catch (error) {
             console.error('Error fetching search results:', error);
             setSearchResults([]);
