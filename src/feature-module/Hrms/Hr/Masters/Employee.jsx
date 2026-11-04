@@ -403,7 +403,7 @@ const Employee = () => {
     return designation ? designation.name : "N/A";
   };
 
-  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // ⚡ Bolt: Memoized filteredData to prevent unnecessary recalculations on unrelated re-renders
   const filteredData = useMemo(() => {
     const lowerSearchTerm = searchTerm.toLowerCase();
     return employeesData.filter(
@@ -418,7 +418,11 @@ const Employee = () => {
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  // ⚡ Bolt: Memoized paginatedData to avoid unnecessary slicing
+  const paginatedData = useMemo(() => {
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
