@@ -24,7 +24,7 @@ const Holidays = () => {
   };
 
   // Optimization: Memoize filtered data, extract toLowerCase() to prevent O(N*M) redundant string operations,
-  // skip array iteration for empty search, and use Object.values to avoid key lookups inside the loop.
+  // iterate over values directly, and return early if searchText is empty.
   const filteredData = useMemo(() => {
     if (!searchText) return datas;
 
@@ -34,7 +34,7 @@ const Holidays = () => {
         return String(val).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [datas, searchText]);
+  }, [searchText, datas]);
 
   const columns = [
   {
