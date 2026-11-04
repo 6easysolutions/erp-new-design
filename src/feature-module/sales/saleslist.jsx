@@ -59,22 +59,16 @@ const SalesList = () => {
     setSearchText(e.target.value);
   };
   const [searchText, setSearchText] = useState("");
-
-  // ⚡ Bolt Performance Optimization:
-  // Wrapped expensive array filtering in useMemo to prevent unnecessary re-computations
-  // during unrelated re-renders. Also hoisted the lowercased search text outside the loop
-  // to avoid calling .toLowerCase() on the search string for every object property.
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur (like toggling filters)
   const filteredData = useMemo(() => {
     const lowerSearchText = searchText.toLowerCase();
-    if (!lowerSearchText) return saleslistdata;
-
     return saleslistdata.filter((entry) => {
       return Object.keys(entry).some((key) => {
         return String(entry[key]).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [saleslistdata, searchText]);
-
+  }, [searchText, saleslistdata]);
   const oldandlatestvalue = [
   { value: "Sort by Date", label: "Sort by Date" },
   { value: "07 09 23", label: "07 09 23" },
