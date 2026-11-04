@@ -66,15 +66,25 @@ const InventoryCounts = () => {
 
   // ── Filtered + paginated ───────────────────────────────────────────────────
   const filteredSessions = useMemo(() => {
+    // ⚡ Bolt: Bypass array iterations completely for empty search and no status filter
+    if (!searchQuery && statusFilter === "all") return sessions;
+
+    // ⚡ Bolt: Extract redundant search query string conversion out of the inner loop
+    const q = searchQuery.toLowerCase();
+
     return sessions.filter((s) => {
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
+      const matchStatus = statusFilter === "all" || s.status === statusFilter;
+      // ⚡ Bolt: Early return if status doesn't match, bypassing search string operations
+      if (!matchStatus) return false;
+
+      if (!q) return true;
+
+      return (
         (s.sessionCode || "").toLowerCase().includes(q) ||
         (String(s.storeId) || "").toLowerCase().includes(q) ||
         (s.categoryName || "").toLowerCase().includes(q) ||
-        (s.countType   || "").toLowerCase().includes(q);
-      const matchStatus = statusFilter === "all" || s.status === statusFilter;
-      return matchSearch && matchStatus;
+        (s.countType   || "").toLowerCase().includes(q)
+      );
     });
   }, [sessions, searchQuery, statusFilter]);
 
@@ -87,27 +97,17 @@ const InventoryCounts = () => {
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    // ⚡ Bolt Performance Optimization: Single-pass iteration to calculate multiple stats
-    // Reduces O(4N) array passes to O(N), preventing unnecessary re-evaluations
-    let draft = 0;
-    let progress = 0;
-    let submitted = 0;
-    let completed = 0;
-
-    for (const s of sessions) {
-      if (s.status === "Draft") draft++;
-      else if (s.status === "In Progress") progress++;
-      else if (s.status === "Submitted") submitted++;
-      else if (s.status === "Completed") completed++;
-    }
-
-    return {
-      total: sessions.length,
-      draft,
-      progress,
-      submitted,
-      completed,
-    };
+    // ⚡ Bolt: Single-pass iteration to calculate stats instead of multiple .filter() calls
+    return sessions.reduce(
+      (acc, s) => {
+        if (s.status === "Draft") acc.draft++;
+        else if (s.status === "In Progress") acc.progress++;
+        else if (s.status === "Submitted") acc.submitted++;
+        else if (s.status === "Completed") acc.completed++;
+        return acc;
+      },
+      { total: sessions.length, draft: 0, progress: 0, submitted: 0, completed: 0 }
+    );
   }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
