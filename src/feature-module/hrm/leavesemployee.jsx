@@ -1,4 +1,4 @@
-import { useState , useMemo} from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import AddLeaveEmployee from "../../core/modals/hrm/addleaveemployee";
 import EditLeaveEmployee from "../../core/modals/hrm/editleaveemployee";
@@ -117,12 +117,15 @@ const LeavesEmployee = () => {
 
 
   const [searchText] = useState("");
-  // ⚡ Bolt: wrap in useMemo and extract searchText.toLowerCase() to avoid O(N*M) redundant operations
+
+  // ⚡ Bolt Performance Optimization: Memoize expensive filtering operation
+  // Expected impact: Prevents full dataset iteration on every render (e.g., when unrelated state changes)
   const filteredData = useMemo(() => {
-    const searchLower = searchText.toLowerCase();
     return leavesEmployeedata.filter((entry) => {
       return Object.keys(entry).some((key) => {
-        return String(entry[key]).toLowerCase().includes(searchLower);
+        return String(entry[key]).
+        toLowerCase().
+        includes(searchText.toLowerCase());
       });
     });
   }, [leavesEmployeedata, searchText]);
