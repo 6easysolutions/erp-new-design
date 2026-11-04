@@ -118,9 +118,8 @@ const LeavesEmployee = () => {
 
   const [searchText] = useState("");
 
-  // ⚡ Bolt Performance Optimization:
-  // Memoizing the filtered dataset prevents expensive O(N*M) string matching
-  // operations from running on every component re-render (e.g. if other state changes).
+  // ⚡ Bolt Performance Optimization: Memoize expensive filtering operation
+  // Expected impact: Prevents full dataset iteration on every render (e.g., when unrelated state changes)
   const filteredData = useMemo(() => {
     return leavesEmployeedata.filter((entry) => {
       return Object.keys(entry).some((key) => {
