@@ -138,8 +138,7 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
-  // Optimization: Consolidate multiple .filter() passes into a single O(N) iteration
-  // and memoize to avoid recalculation on unrelated re-renders
+  // ⚡ Bolt: Use useMemo and a single pass to calculate stats efficiently without redundant filters and lowercases
   const stats = useMemo(() => {
     let dispatched = 0;
     let inProgress = 0;
@@ -147,7 +146,6 @@ const StockTransferList = () => {
 
     for (const t of data) {
       if (!t.status) continue;
-
       const status = t.status.toLowerCase();
       if (status === "dispatched") {
         dispatched++;
