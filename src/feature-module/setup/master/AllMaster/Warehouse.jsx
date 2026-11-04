@@ -216,14 +216,14 @@ const Warehouse = () => {
     };
 
     // Filter data based on search term
-    // Performance optimization: Memoize filtered data, use early return for empty search, and extract lowercase conversion
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
     const filteredData = useMemo(() => {
         if (!searchTerm) return warehouseData;
-        const lowerSearchTerm = searchTerm.toLowerCase();
+        const lowerSearch = searchTerm.toLowerCase();
         return warehouseData.filter(item =>
-            (item.warehouseName || '').toLowerCase().includes(lowerSearchTerm) ||
-            (item.warehouseType || '').toLowerCase().includes(lowerSearchTerm)
-        );
+        (item.warehouseName || '').toLowerCase().includes(lowerSearch) ||
+        (item.warehouseType || '').toLowerCase().includes(lowerSearch)
+    );
     }, [warehouseData, searchTerm]);
 
     // Pagination logic
