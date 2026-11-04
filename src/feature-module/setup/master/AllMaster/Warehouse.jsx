@@ -1,4 +1,4 @@
-import React, { useState, useEffect , useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router';
@@ -216,13 +216,14 @@ const Warehouse = () => {
     };
 
     // Filter data based on search term
-        const filteredData = useMemo(() => {
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
+    const filteredData = useMemo(() => {
         if (!searchTerm) return warehouseData;
-        const lowerSearchTerm = searchTerm.toLowerCase();
+        const lowerSearch = searchTerm.toLowerCase();
         return warehouseData.filter(item =>
-            (item.warehouseName || '').toLowerCase().includes(lowerSearchTerm) ||
-        (item.warehouseType || '').toLowerCase().includes(lowerSearchTerm)
-        );
+        (item.warehouseName || '').toLowerCase().includes(lowerSearch) ||
+        (item.warehouseType || '').toLowerCase().includes(lowerSearch)
+    );
     }, [warehouseData, searchTerm]);
 
     // Pagination logic

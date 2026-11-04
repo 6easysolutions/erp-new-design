@@ -1,4 +1,4 @@
-import React, { useState, useEffect , useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -173,12 +173,13 @@ const SubCategory = () => {
         }
     };
 
-        const filteredData = useMemo(() => {
-        if (!searchTerm) return subCategoriesData;
-        const lowerSearchTerm = searchTerm.toLowerCase();
+    // ⚡ Bolt Performance Optimization:
+    // Memoized filtering and extracted lowercase invariant to prevent O(N*M) recalculations on every render
+    const filteredData = useMemo(() => {
+        const query = searchTerm.toLowerCase();
         return subCategoriesData.filter(s =>
-            s.name.toLowerCase().includes(lowerSearchTerm) ||
-        s.categoryName.toLowerCase().includes(lowerSearchTerm)
+            s.name.toLowerCase().includes(query) ||
+            s.categoryName.toLowerCase().includes(query)
         );
     }, [subCategoriesData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect , useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -129,12 +129,13 @@ const UnitOfMeasureTypes = () => {
         }
     };
 
-        const filteredData = useMemo(() => {
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
+    const filteredData = useMemo(() => {
         if (!searchTerm) return uomData;
-        const lowerSearchTerm = searchTerm.toLowerCase();
+        const lowerSearch = searchTerm.toLowerCase();
         return uomData.filter(item =>
-            (item.name || '').toLowerCase().includes(lowerSearchTerm) // ← name fallback preserved
-        );
+        (item.name || '').toLowerCase().includes(lowerSearch) // ← name fallback preserved
+    );
     }, [uomData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);
     const startIndex    = (currentPage - 1) * rowsPerPage;
