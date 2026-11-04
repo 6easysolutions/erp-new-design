@@ -173,14 +173,13 @@ const SubCategory = () => {
         }
     };
 
-    // ⚡ Bolt: Memoized array filtering to prevent O(N) operations on unrelated re-renders.
-    // Also extracted searchTerm.toLowerCase() to avoid redundant string conversions inside the loop.
+    // ⚡ Bolt Performance Optimization:
+    // Memoized filtering and extracted lowercase invariant to prevent O(N*M) recalculations on every render
     const filteredData = useMemo(() => {
-        if (!searchTerm) return subCategoriesData;
-        const lowerSearch = searchTerm.toLowerCase();
+        const query = searchTerm.toLowerCase();
         return subCategoriesData.filter(s =>
-            s.name.toLowerCase().includes(lowerSearch) ||
-            s.categoryName.toLowerCase().includes(lowerSearch)
+            s.name.toLowerCase().includes(query) ||
+            s.categoryName.toLowerCase().includes(query)
         );
     }, [subCategoriesData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);
