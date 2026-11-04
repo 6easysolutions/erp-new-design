@@ -90,12 +90,12 @@ const Sale = () => {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
-            } catch (error) {
-                console.error('Error fetching search results:', error);
-                setSearchResults([]);
-            }
-        }, 500)
-    ).current;
+            });
+        } catch (error) {
+            console.error('Error fetching search results:', error);
+            setSearchResults([]);
+        }
+    };
 
     // OPTIMIZATION: Debounce API requests on search input to prevent unnecessary network load
     useEffect(() => {
