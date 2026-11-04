@@ -5,6 +5,9 @@
 **Learning:** The codebase has a prevalent anti-pattern of filtering large static datasets synchronously inside component render functions without memoization (e.g. `data.filter(...)`). It additionally compounds the issue by performing redundant operations, such as extracting keys and repeatedly evaluating `searchText.toLowerCase()` inside inner loops, leading to O(N*M) redundant string conversions.
 **Action:** Always wrap array filtering operations with `useMemo` to prevent performance degradation during unrelated component re-renders. Furthermore, extract redundant string manipulations (like `toLowerCase()`) outside of the filter/loop execution logic to avoid unnecessary re-evaluation.
 
-## 2024-05-14 - [Consolidating array filtering and reducing rendering overhead in list rendering]
-**Learning:** Found an anti-pattern in list rendering inside table components where `Array.filter(...).length` was being called during every single render loop for every row, as well as being used 4 separate times in a stats calculation block for a memoized status counter. This drastically increases intermediate array allocations and blocks the main thread.
-**Action:** Replace `Array.filter(...).length` in render loops with simple `for` loop counters to prevent allocating disposable arrays entirely. When extracting multiple stats from an array via `useMemo`, combine multiple `Array.filter` calls into a single-pass `for...of` iteration block that tallies all stats simultaneously. Additionally, extract derived query variables like `searchQuery.toLowerCase()` outside of `Array.filter()` blocks inside memos, and short-circuit early using `!searchQuery` logic to skip filtering entirely on empty loads.
+## 2024-05-24 - [Anti-pattern: O(N*M) Unmemoized Array Filtering]
+**Learning:** Found a widespread codebase anti-pattern where potentially large arrays (e.g., table data) are filtered synchronously inside React functional components without `useMemo`. This creates O(N*M) redundant string operations (`toLowerCase`) on every re-render (e.g. from unrelated state changes).
+**Action:** When working on array filtering in functional components, always ensure:
+1) Early return if search string is empty.
+2) Extract redundant transformations like `.toLowerCase()` outside the loop.
+3) Wrap the result in `useMemo` with proper dependencies.

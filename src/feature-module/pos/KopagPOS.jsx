@@ -200,6 +200,7 @@ const KopagPOS = () => {
     return cartItemMap.has(itemId);
   }, [cartItemMap]);
 
+  // Performance Optimization: Memoize filtered menu items to prevent redundant O(N) operations on every re-render (e.g. keystrokes in customerName input)
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter(item => item.category === activeCategory);
   }, [menuItems, activeCategory]);

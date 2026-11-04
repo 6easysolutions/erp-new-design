@@ -66,17 +66,25 @@ const InventoryCounts = () => {
 
   // ── Filtered + paginated ───────────────────────────────────────────────────
   const filteredSessions = useMemo(() => {
+    // ⚡ Bolt: Bypass array iterations completely for empty search and no status filter
+    if (!searchQuery && statusFilter === "all") return sessions;
+
+    // ⚡ Bolt: Extract redundant search query string conversion out of the inner loop
     const q = searchQuery.toLowerCase();
-    if (!q && statusFilter === "all") return sessions;
 
     return sessions.filter((s) => {
-      const matchSearch = !q ||
+      const matchStatus = statusFilter === "all" || s.status === statusFilter;
+      // ⚡ Bolt: Early return if status doesn't match, bypassing search string operations
+      if (!matchStatus) return false;
+
+      if (!q) return true;
+
+      return (
         (s.sessionCode || "").toLowerCase().includes(q) ||
         (String(s.storeId) || "").toLowerCase().includes(q) ||
         (s.categoryName || "").toLowerCase().includes(q) ||
-        (s.countType   || "").toLowerCase().includes(q);
-      const matchStatus = statusFilter === "all" || s.status === statusFilter;
-      return matchSearch && matchStatus;
+        (s.countType   || "").toLowerCase().includes(q)
+      );
     });
   }, [sessions, searchQuery, statusFilter]);
 
@@ -89,14 +97,17 @@ const InventoryCounts = () => {
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    const res = { total: sessions.length, draft: 0, progress: 0, submitted: 0, completed: 0 };
-    for (const s of sessions) {
-      if (s.status === "Draft") res.draft++;
-      else if (s.status === "In Progress") res.progress++;
-      else if (s.status === "Submitted") res.submitted++;
-      else if (s.status === "Completed") res.completed++;
-    }
-    return res;
+    // ⚡ Bolt: Single-pass iteration to calculate stats instead of multiple .filter() calls
+    return sessions.reduce(
+      (acc, s) => {
+        if (s.status === "Draft") acc.draft++;
+        else if (s.status === "In Progress") acc.progress++;
+        else if (s.status === "Submitted") acc.submitted++;
+        else if (s.status === "Completed") acc.completed++;
+        return acc;
+      },
+      { total: sessions.length, draft: 0, progress: 0, submitted: 0, completed: 0 }
+    );
   }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
@@ -736,10 +747,10 @@ const InventoryCounts = () => {
                         const statusMeta      = getStatusMeta(session.status);
                         const itemsArr        = Array.isArray(session.items) ? session.items : [];
 
+                        // ⚡ Bolt: Replaced itemsArr.filter().length with a single loop to prevent intermediate array allocation during every row render
                         let approvedCnt = 0;
-                        for (let i = 0; i < itemsArr.length; i++) {
-                          const status = itemsArr[i].approvalStatus;
-                          if (status === "approved" || status === "complete") {
+                        for (const i of itemsArr) {
+                          if (i.approvalStatus === "approved" || i.approvalStatus === "complete") {
                             approvedCnt++;
                           }
                         }
