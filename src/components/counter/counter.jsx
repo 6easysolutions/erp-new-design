@@ -1,9 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Tooltip } from "primereact/tooltip";
 
-const CartCounter = () => {
+// Memoize the counter component as it's used repeatedly (40+ times in POS)
+// This prevents unnecessary re-renders when parent components (like POS) update
+const CartCounter = React.memo(() => {
   const [quantity, setQuantity] = useState(0);
 
   const handleIncrement = () => {
@@ -66,8 +68,10 @@ const CartCounter = () => {
       </Tooltip>
     </>
   );
-};
+});
 CartCounter.propTypes = {
   defaultValue: PropTypes.any,
 };
+CartCounter.displayName = "CartCounter"; // Added for better dev tools debugging
+
 export default CartCounter;
