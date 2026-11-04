@@ -23,13 +23,15 @@ const Holidays = () => {
     setSearchQuery(value);
   };
 
-  // Optimization: Memoize filtered data, return early for empty search, and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // Optimization: Memoize filtered data, extract toLowerCase() to prevent O(N*M) redundant string operations,
+  // iterate over values directly, and return early if searchText is empty.
   const filteredData = useMemo(() => {
     if (!searchText) return datas;
+
     const lowerSearchText = searchText.toLowerCase();
     return datas.filter((entry) => {
-      return Object.keys(entry).some((key) => {
-        return String(entry[key]).toLowerCase().includes(lowerSearchText);
+      return Object.values(entry).some((val) => {
+        return String(val).toLowerCase().includes(lowerSearchText);
       });
     });
   }, [searchText, datas]);
