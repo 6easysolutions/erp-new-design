@@ -607,29 +607,17 @@ const PurchaseReturns = () => {
     }
   };
 
-  // ⚡ Bolt Performance Optimization:
-  // Wrap filter operations in useMemo to avoid O(N*M) redundant string conversions and
-  // unnecessary re-renders on arbitrary state updates. Early return for empty queries
-  // completely bypasses array iteration overhead.
+  // Performance optimization: Memoize filtering to prevent recalculation on unrelated re-renders
   const filteredPurchaseOrders = useMemo(() => {
-    if (!searchInvoice) return purchaseOrders;
-    const query = searchInvoice.toLowerCase();
     return purchaseOrders.filter((o) =>
-      o.invoice_number?.toLowerCase().includes(query) ||
-      o.batchId?.toLowerCase().includes(query)
+      !searchInvoice ||
+      o.invoice_number?.toLowerCase().includes(searchInvoice.toLowerCase()) ||
+      o.batchId?.toLowerCase().includes(searchInvoice.toLowerCase())
     );
   }, [purchaseOrders, searchInvoice]);
 
-  const filteredPurchaseItems = useMemo(() => {
-    if (!itemSearchQuery) return selectedPurchaseItems;
-    const query = itemSearchQuery.toLowerCase();
-    return selectedPurchaseItems.filter((item) =>
-      item.item_name?.toLowerCase().includes(query) ||
-      item.invoiceNo?.toLowerCase().includes(query)
-    );
-  }, [selectedPurchaseItems, itemSearchQuery]);
-
-  const calculateTotals = () => {
+  // ⚡ Bolt: Memoized totals calculation to avoid repeated iterations over return items on every render
+  const totals = useMemo(() => {
     const valid  = returnItems.filter((i) => i.productId || i.id);
     const noOfItems = valid.length;
     const totalQty  = valid.reduce((s, i) => s + safeToNumber(returnQuantities[i.uniqueKey] || i.quantity_stock), 0);
@@ -645,14 +633,25 @@ const PurchaseReturns = () => {
     }, 0);
     const totalChargesAmount = charges.reduce((s, c) => s + safeToNumber(c.total_amount), 0);
     return { noOfItems, totalQty, totalAmount, totalTax, totalChargesAmount, finalAmount: totalAmount + totalTax + totalChargesAmount };
-  };
+  }, [returnItems, returnQuantities, charges]);
 
-  const totals        = calculateTotals();
   const formatDate    = (d) => { try { return new Date(d).toLocaleDateString("en-IN"); } catch { return "N/A"; } };
   const formatTime    = (d) => { try { return new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }); } catch { return "N/A"; } };
-  const getSupplierName = () => suppliers.find((s) => s.value === selectedSupplier)?.label || "N/A";
+
+  // ⚡ Bolt: Memoized supplier name lookup to skip array searching when selection hasn't changed
+  const getSupplierName = useMemo(() => suppliers.find((s) => s.value === selectedSupplier)?.label || "N/A", [suppliers, selectedSupplier]);
+
   const selectedSupplierOption = suppliers.find((s) => s.value === selectedSupplier) || null;
   const selectedReturnTypeOption = returnTypeOptions.find((o) => o.value === returnType) || null;
+
+  // ⚡ Bolt: Memoized selection filter to prevent recalculating table data on unrelated state changes
+  const filteredSelectedPurchaseItems = useMemo(() => {
+    return selectedPurchaseItems.filter((item) =>
+      !itemSearchQuery ||
+      item.item_name?.toLowerCase().includes(itemSearchQuery.toLowerCase()) ||
+      item.invoiceNo?.toLowerCase().includes(itemSearchQuery.toLowerCase())
+    );
+  }, [selectedPurchaseItems, itemSearchQuery]);
 
   // ── Render ───────────────────────────────────────────────
   return (
@@ -827,7 +826,7 @@ const PurchaseReturns = () => {
                             <td><span className="pms-sno">{index + 1}</span></td>
                             <td>{order.vendorName || "N/A"}</td>
                             <td>
-                              <div className="pms-product-name">{getSupplierName()}</div>
+                              <div className="pms-product-name">{getSupplierName}</div>
                             </td>
                             <td className="pms-center">
                               <span className="pms-chip">{order.id}</span>
@@ -946,7 +945,7 @@ const PurchaseReturns = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredPurchaseItems
+                        {filteredSelectedPurchaseItems
                         .map((item, index) => (
                           <tr
                             key={item.uniqueKey || index}
