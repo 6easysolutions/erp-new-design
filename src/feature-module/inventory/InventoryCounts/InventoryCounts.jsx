@@ -746,7 +746,15 @@ const InventoryCounts = () => {
                       paginated.map((session) => {
                         const statusMeta      = getStatusMeta(session.status);
                         const itemsArr        = Array.isArray(session.items) ? session.items : [];
-                        const approvedCnt     = itemsArr.filter(i => i.approvalStatus === "approved" || i.approvalStatus === "complete").length;
+
+                        // ⚡ Bolt: Replaced itemsArr.filter().length with a single loop to prevent intermediate array allocation during every row render
+                        let approvedCnt = 0;
+                        for (const i of itemsArr) {
+                          if (i.approvalStatus === "approved" || i.approvalStatus === "complete") {
+                            approvedCnt++;
+                          }
+                        }
+
                         const total           = session.totalItems ?? itemsArr.length;
                         const progressPct     = total === 0 ? 0 : Math.round((approvedCnt / total) * 100);
                         const progressText    = `${approvedCnt} / ${total}`;
