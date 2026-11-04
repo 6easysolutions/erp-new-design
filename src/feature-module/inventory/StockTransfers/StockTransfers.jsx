@@ -138,17 +138,30 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
+  // ⚡ Bolt: Use useMemo and a single pass to calculate stats efficiently without redundant filters and lowercases
   const stats = useMemo(() => {
-    // ⚡ Bolt Optimization: Replace multiple `.filter` passes with a single-pass loop and memoize
-    let dispatched = 0, inProgress = 0, draft = 0;
+    let dispatched = 0;
+    let inProgress = 0;
+    let draft = 0;
+
     for (const t of data) {
       if (!t.status) continue;
       const status = t.status.toLowerCase();
-      if (status === "dispatched") dispatched++;
-      else if (status === "draft") draft++;
-      else if (status === "pending" || status === "approved" || status === "approve") inProgress++;
+      if (status === "dispatched") {
+        dispatched++;
+      } else if (status === "pending" || status === "approved" || status === "approve") {
+        inProgress++;
+      } else if (status === "draft") {
+        draft++;
+      }
     }
-    return { total: totalRecords, dispatched, inProgress, draft };
+
+    return {
+      total: totalRecords,
+      dispatched,
+      inProgress,
+      draft,
+    };
   }, [data, totalRecords]);
 
   return (
