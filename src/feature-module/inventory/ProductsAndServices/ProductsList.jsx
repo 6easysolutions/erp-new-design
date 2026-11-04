@@ -9,6 +9,193 @@ import { Eye, Edit, ChevronDown, Package, Plus, Download, Filter, X } from "reac
 import axios from "axios";
 import { URLS } from "../../../Urls";
 import debounce from "lodash.debounce";
+import React, { useMemo } from "react";
+
+// -------------------- FilterDropdown component (extracted for memoization) --------------------
+// ⚡ Bolt: Component extracted outside of ProductsList to avoid continuous unmounting/remounting
+// on every parent render, allowing useMemo to actually cache the filtered options.
+const FilterDropdown = ({ name, label, value, options = [], filterSearch, setFilterSearch, openDropdown, setOpenDropdown, handleFilterChange }) => {
+  // ⚡ Bolt: Memoize filtered options and extract toLowerCase to avoid O(N*M) redundant string operations
+  const filteredOptions = useMemo(() => {
+    const searchTerm = filterSearch[name];
+    if (!searchTerm) return options;
+
+    const lowerSearch = searchTerm.toLowerCase();
+    return options.filter((opt) => opt.name.toLowerCase().includes(lowerSearch));
+  }, [options, filterSearch[name]]);
+
+  const isOpen = openDropdown === name;
+  const selectedLabel =
+    value === "All" ? "All" : options.find((o) => o.id === value)?.name || value;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <span className="pms-m-field-label">{label}</span>
+      <button
+        type="button"
+        onClick={() => setOpenDropdown(isOpen ? null : name)}
+        style={{
+          width: "100%",
+          background: "rgba(255,255,255,0.2)",
+          backdropFilter: "blur(15px)",
+          WebkitBackdropFilter: "blur(15px)",
+          border: isOpen
+            ? "1px solid rgba(59,130,246,0.5)"
+            : "1px solid rgba(255,255,255,0.3)",
+          borderRadius: 12,
+          padding: "8px 12px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontSize: 13,
+          fontWeight: 500,
+          color: value === "All" ? "#94a3b8" : "#1e293b",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          boxShadow: isOpen ? "0 0 0 3px rgba(59,130,246,0.1)" : "none",
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {selectedLabel}
+        </span>
+        <ChevronDown
+          size={14}
+          style={{
+            flexShrink: 0,
+            marginLeft: 6,
+            color: "#94a3b8",
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease",
+          }}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            background: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.4)",
+            borderRadius: 14,
+            boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
+            zIndex: 9999,
+            overflow: "hidden",
+            animation: "fadeDropdown 0.15s ease",
+          }}
+        >
+          <div style={{ padding: "10px 10px 6px" }}>
+            <div
+              style={{
+                background: "rgba(241,245,249,0.8)",
+                border: "1px solid rgba(226,232,240,0.8)",
+                borderRadius: 8,
+                padding: "5px 10px",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Filter size={11} color="#94a3b8" />
+              <input
+                type="text"
+                placeholder={`Search ${label}...`}
+                value={filterSearch[name]}
+                onChange={(e) =>
+                  setFilterSearch((prev) => ({ ...prev, [name]: e.target.value }))
+                }
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: 12,
+                  color: "#1e293b",
+                  outline: "none",
+                  width: "100%",
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ maxHeight: 220, overflowY: "auto", padding: "4px 6px 8px" }}>
+            <button
+              type="button"
+              onClick={() => {
+                handleFilterChange(name, "All");
+                setFilterSearch((prev) => ({ ...prev, [name]: "" }));
+              }}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "none",
+                background: value === "All" ? "linear-gradient(135deg,#3b82f6,#2563eb)" : "transparent",
+                color: value === "All" ? "#fff" : "#475569",
+                fontSize: 13,
+                fontWeight: value === "All" ? 600 : 400,
+                cursor: "pointer",
+                marginBottom: 2,
+                transition: "background 0.15s",
+              }}
+            >
+              All
+            </button>
+            {filteredOptions.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "12px 0", color: "#94a3b8", fontSize: 12 }}>
+                No results found
+              </div>
+            ) : (
+              filteredOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    handleFilterChange(name, option.id);
+                    setFilterSearch((prev) => ({ ...prev, [name]: "" }));
+                  }}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: "none",
+                    background:
+                      value === option.id
+                        ? "linear-gradient(135deg,#3b82f6,#2563eb)"
+                        : "transparent",
+                    color: value === option.id ? "#fff" : "#1e293b",
+                    fontSize: 13,
+                    fontWeight: value === option.id ? 600 : 400,
+                    cursor: "pointer",
+                    marginBottom: 2,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (value !== option.id)
+                      e.currentTarget.style.background = "rgba(59,130,246,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (value !== option.id)
+                      e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {option.name}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProductsList = () => {
   // -------------------- State --------------------
@@ -208,13 +395,6 @@ const ProductsList = () => {
   }, [products, dropdowns]);
 
   // -------------------- Filter dropdown helpers --------------------
-  const getFilteredOptions = (options, searchTerm) => {
-    if (!searchTerm) return options;
-    return options.filter((opt) =>
-      opt.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
-
   const activeFilterCount = Object.values(filters).filter((v) => v !== "All").length;
 
   // -------------------- Columns definition --------------------
@@ -390,182 +570,6 @@ const ProductsList = () => {
     [navigate]
   );
 
-  // -------------------- FilterDropdown component (unchanged) --------------------
-  const FilterDropdown = ({ name, label, value, options = [] }) => {
-    const filteredOptions = getFilteredOptions(options, filterSearch[name]);
-    const isOpen = openDropdown === name;
-    const selectedLabel =
-      value === "All" ? "All" : options.find((o) => o.id === value)?.name || value;
-
-    return (
-      <div style={{ position: "relative" }}>
-        <span className="pms-m-field-label">{label}</span>
-        <button
-          type="button"
-          onClick={() => setOpenDropdown(isOpen ? null : name)}
-          style={{
-            width: "100%",
-            background: "rgba(255,255,255,0.2)",
-            backdropFilter: "blur(15px)",
-            WebkitBackdropFilter: "blur(15px)",
-            border: isOpen
-              ? "1px solid rgba(59,130,246,0.5)"
-              : "1px solid rgba(255,255,255,0.3)",
-            borderRadius: 12,
-            padding: "8px 12px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: 13,
-            fontWeight: 500,
-            color: value === "All" ? "#94a3b8" : "#1e293b",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            boxShadow: isOpen ? "0 0 0 3px rgba(59,130,246,0.1)" : "none",
-          }}
-        >
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {selectedLabel}
-          </span>
-          <ChevronDown
-            size={14}
-            style={{
-              flexShrink: 0,
-              marginLeft: 6,
-              color: "#94a3b8",
-              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform 0.2s ease",
-            }}
-          />
-        </button>
-
-        {isOpen && (
-          <div
-            style={{
-              position: "absolute",
-              top: "calc(100% + 6px)",
-              left: 0,
-              right: 0,
-              background: "rgba(255,255,255,0.92)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.4)",
-              borderRadius: 14,
-              boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
-              zIndex: 9999,
-              overflow: "hidden",
-              animation: "fadeDropdown 0.15s ease",
-            }}
-          >
-            <div style={{ padding: "10px 10px 6px" }}>
-              <div
-                style={{
-                  background: "rgba(241,245,249,0.8)",
-                  border: "1px solid rgba(226,232,240,0.8)",
-                  borderRadius: 8,
-                  padding: "5px 10px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <Filter size={11} color="#94a3b8" />
-                <input
-                  type="text"
-                  placeholder={`Search ${label}...`}
-                  value={filterSearch[name]}
-                  onChange={(e) =>
-                    setFilterSearch((prev) => ({ ...prev, [name]: e.target.value }))
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    fontSize: 12,
-                    color: "#1e293b",
-                    outline: "none",
-                    width: "100%",
-                  }}
-                />
-              </div>
-            </div>
-            <div style={{ maxHeight: 220, overflowY: "auto", padding: "4px 6px 8px" }}>
-              <button
-                type="button"
-                onClick={() => {
-                  handleFilterChange(name, "All");
-                  setFilterSearch((prev) => ({ ...prev, [name]: "" }));
-                }}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "7px 10px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: value === "All" ? "linear-gradient(135deg,#3b82f6,#2563eb)" : "transparent",
-                  color: value === "All" ? "#fff" : "#475569",
-                  fontSize: 13,
-                  fontWeight: value === "All" ? 600 : 400,
-                  cursor: "pointer",
-                  marginBottom: 2,
-                  transition: "background 0.15s",
-                }}
-              >
-                All
-              </button>
-              {filteredOptions.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "12px 0", color: "#94a3b8", fontSize: 12 }}>
-                  No results found
-                </div>
-              ) : (
-                filteredOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => {
-                      handleFilterChange(name, option.id);
-                      setFilterSearch((prev) => ({ ...prev, [name]: "" }));
-                    }}
-                    style={{
-                      width: "100%",
-                      textAlign: "left",
-                      padding: "7px 10px",
-                      borderRadius: 8,
-                      border: "none",
-                      background:
-                        value === option.id
-                          ? "linear-gradient(135deg,#3b82f6,#2563eb)"
-                          : "transparent",
-                      color: value === option.id ? "#fff" : "#1e293b",
-                      fontSize: 13,
-                      fontWeight: value === option.id ? 600 : 400,
-                      cursor: "pointer",
-                      marginBottom: 2,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (value !== option.id)
-                        e.currentTarget.style.background = "rgba(59,130,246,0.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (value !== option.id)
-                        e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    {option.name}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   // -------------------- Render --------------------
   return (
     <>
@@ -698,6 +702,11 @@ const ProductsList = () => {
                     label="Category"
                     value={filters.category}
                     options={dropdowns.categories}
+                    filterSearch={filterSearch}
+                    setFilterSearch={setFilterSearch}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    handleFilterChange={handleFilterChange}
                   />
                 </div>
                 <div className="col-md-4 col-lg-3">
@@ -706,6 +715,11 @@ const ProductsList = () => {
                     label="Sub Category"
                     value={filters.subCategory}
                     options={dropdowns.subcategories}
+                    filterSearch={filterSearch}
+                    setFilterSearch={setFilterSearch}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    handleFilterChange={handleFilterChange}
                   />
                 </div>
                 <div className="col-md-4 col-lg-3">
@@ -714,6 +728,11 @@ const ProductsList = () => {
                     label="Brand"
                     value={filters.brand}
                     options={dropdowns.brands}
+                    filterSearch={filterSearch}
+                    setFilterSearch={setFilterSearch}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    handleFilterChange={handleFilterChange}
                   />
                 </div>
               </div>

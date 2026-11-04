@@ -11,3 +11,7 @@
 1) Early return if search string is empty.
 2) Extract redundant transformations like `.toLowerCase()` outside the loop.
 3) Wrap the result in `useMemo` with proper dependencies.
+
+## 2024-11-04 - [React Component Definition Anti-pattern]
+**Learning:** Defining functional components inline within the parent's render body completely defeats `useMemo` caching since the child component is recreated as a completely new type on every render.
+**Action:** Always extract child components outside of the parent and pass required state variables explicitly via props to ensure memoization and other hooks work as expected.
