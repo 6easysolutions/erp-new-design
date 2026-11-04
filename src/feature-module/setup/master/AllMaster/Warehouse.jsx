@@ -216,13 +216,14 @@ const Warehouse = () => {
     };
 
     // Filter data based on search term
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
     const filteredData = useMemo(() => {
         if (!searchTerm) return warehouseData;
         const lowerSearch = searchTerm.toLowerCase();
         return warehouseData.filter(item =>
-            (item.warehouseName || '').toLowerCase().includes(lowerSearch) ||
-            (item.warehouseType || '').toLowerCase().includes(lowerSearch)
-        );
+        (item.warehouseName || '').toLowerCase().includes(lowerSearch) ||
+        (item.warehouseType || '').toLowerCase().includes(lowerSearch)
+    );
     }, [warehouseData, searchTerm]);
 
     // Pagination logic

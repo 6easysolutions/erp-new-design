@@ -131,12 +131,13 @@ const HsnSac = () => {
         }
     };
 
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
     const filteredData = useMemo(() => {
         if (!searchTerm) return hsnData;
         const lowerSearch = searchTerm.toLowerCase();
         return hsnData.filter(h =>
-            h.name.toLowerCase().includes(lowerSearch)
-        );
+        h.name.toLowerCase().includes(lowerSearch)
+    );
     }, [hsnData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);
     const startIndex    = (currentPage - 1) * rowsPerPage;

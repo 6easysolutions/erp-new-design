@@ -132,12 +132,13 @@ const StockReasons = () => {
     };
 
     // ← reasonName field access preserved (with name fallback)
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
     const filteredData = useMemo(() => {
         if (!searchTerm) return reasonsData;
         const lowerSearch = searchTerm.toLowerCase();
         return reasonsData.filter(r =>
-            (r.reasonName || r.name || '').toLowerCase().includes(lowerSearch)
-        );
+        (r.reasonName || r.name || '').toLowerCase().includes(lowerSearch)
+    );
     }, [reasonsData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);
     const startIndex    = (currentPage - 1) * rowsPerPage;

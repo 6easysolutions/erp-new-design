@@ -106,12 +106,13 @@ const ItemName = () => {
         }
     };
 
+    // ⚡ Bolt: Memoized array filtering with early return and hoisted lowercasing for search optimization
     const filteredData = useMemo(() => {
         if (!searchTerm) return itemsData;
         const lowerSearch = searchTerm.toLowerCase();
         return itemsData.filter(item =>
-            item.name.toLowerCase().includes(lowerSearch)
-        );
+        item.name.toLowerCase().includes(lowerSearch)
+    );
     }, [itemsData, searchTerm]);
     const totalPages    = Math.ceil(filteredData.length / rowsPerPage);
     const startIndex    = (currentPage - 1) * rowsPerPage;
