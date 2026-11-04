@@ -66,15 +66,25 @@ const InventoryCounts = () => {
 
   // ── Filtered + paginated ───────────────────────────────────────────────────
   const filteredSessions = useMemo(() => {
+    // ⚡ Bolt: Bypass array iterations completely for empty search and no status filter
+    if (!searchQuery && statusFilter === "all") return sessions;
+
+    // ⚡ Bolt: Extract redundant search query string conversion out of the inner loop
+    const q = searchQuery.toLowerCase();
+
     return sessions.filter((s) => {
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
+      const matchStatus = statusFilter === "all" || s.status === statusFilter;
+      // ⚡ Bolt: Early return if status doesn't match, bypassing search string operations
+      if (!matchStatus) return false;
+
+      if (!q) return true;
+
+      return (
         (s.sessionCode || "").toLowerCase().includes(q) ||
         (String(s.storeId) || "").toLowerCase().includes(q) ||
         (s.categoryName || "").toLowerCase().includes(q) ||
-        (s.countType   || "").toLowerCase().includes(q);
-      const matchStatus = statusFilter === "all" || s.status === statusFilter;
-      return matchSearch && matchStatus;
+        (s.countType   || "").toLowerCase().includes(q)
+      );
     });
   }, [sessions, searchQuery, statusFilter]);
 
@@ -86,13 +96,19 @@ const InventoryCounts = () => {
   const endRecord    = Math.min(safePage * rows, filteredSessions.length);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => ({
-    total:     sessions.length,
-    draft:     sessions.filter((s) => s.status === "Draft").length,
-    progress:  sessions.filter((s) => s.status === "In Progress").length,
-    submitted: sessions.filter((s) => s.status === "Submitted").length,
-    completed: sessions.filter((s) => s.status === "Completed").length,
-  }), [sessions]);
+  const stats = useMemo(() => {
+    // ⚡ Bolt: Single-pass iteration to calculate stats instead of multiple .filter() calls
+    return sessions.reduce(
+      (acc, s) => {
+        if (s.status === "Draft") acc.draft++;
+        else if (s.status === "In Progress") acc.progress++;
+        else if (s.status === "Submitted") acc.submitted++;
+        else if (s.status === "Completed") acc.completed++;
+        return acc;
+      },
+      { total: sessions.length, draft: 0, progress: 0, submitted: 0, completed: 0 }
+    );
+  }, [sessions]);
 
   // ── Page numbers for pagination ────────────────────────────────────────────
   const getPageNumbers = () => {
@@ -730,7 +746,15 @@ const InventoryCounts = () => {
                       paginated.map((session) => {
                         const statusMeta      = getStatusMeta(session.status);
                         const itemsArr        = Array.isArray(session.items) ? session.items : [];
-                        const approvedCnt     = itemsArr.filter(i => i.approvalStatus === "approved" || i.approvalStatus === "complete").length;
+
+                        // ⚡ Bolt: Replaced itemsArr.filter().length with a single loop to prevent intermediate array allocation during every row render
+                        let approvedCnt = 0;
+                        for (const i of itemsArr) {
+                          if (i.approvalStatus === "approved" || i.approvalStatus === "complete") {
+                            approvedCnt++;
+                          }
+                        }
+
                         const total           = session.totalItems ?? itemsArr.length;
                         const progressPct     = total === 0 ? 0 : Math.round((approvedCnt / total) * 100);
                         const progressText    = `${approvedCnt} / ${total}`;

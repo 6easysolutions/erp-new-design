@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -44,7 +44,187 @@ const CATEGORY_IMAGES = [
  * - Complete order management
  * - Integrated AddProduct and CustomerForm modals
  */
+
+const ProductCard = React.memo(({ product, isInCart, cartItemQty, onAddToCart }) => {
+  return (
+    <div className="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+      <div
+        className={`product-card ${isInCart ? "in-cart" : ""}`}
+        onClick={() => onAddToCart(product)}
+        style={{
+          position: "relative",
+          cursor: "pointer",
+          border: "1px solid #e9ecef",
+          borderRadius: "8px",
+          padding: "8px",
+          transition: "all 0.2s ease",
+          backgroundColor: isInCart ? "#f0f9ff" : "#fff",
+          borderColor: isInCart ? "#3b82f6" : "#e9ecef",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+          e.currentTarget.style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
+        {/* In Cart Badge */}
+        {isInCart && (
+          <div
+            style={{
+              position: "absolute",
+              top: "4px",
+              right: "4px",
+              backgroundColor: "#3b82f6",
+              color: "white",
+              borderRadius: "12px",
+              padding: "2px 6px",
+              fontSize: "10px",
+              fontWeight: "bold",
+              zIndex: 10,
+            }}
+          >
+            {cartItemQty}x
+          </div>
+        )}
+
+        {/* Product Image */}
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            paddingTop: "100%",
+            borderRadius: "6px",
+            overflow: "hidden",
+            backgroundColor: "#f8f9fa",
+            marginBottom: "6px",
+          }}
+        >
+          {product.product_images && product.product_images.length > 0 ? (
+            <img
+              alt={product.name}
+              src={`${URLS.ImageUrl}${product.product_images[0]}`}
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/150?text=No+Image";
+              }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#e9ecef",
+              }}
+            >
+              <i
+                className="ti ti-photo"
+                style={{
+                  fontSize: "32px",
+                  color: "#adb5bd",
+                }}
+              ></i>
+            </div>
+          )}
+        </div>
+
+        {/* Product Info */}
+        <div>
+          <h6
+            style={{
+              fontSize: "11px",
+              fontWeight: "600",
+              margin: "0 0 4px 0",
+              lineHeight: "1.3",
+              height: "28px",
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+            title={product.name}
+          >
+            {product.name}
+          </h6>
+
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  color: "#059669",
+                }}
+              >
+                ₹{product.selling_price || product.purchase_price || "0"}
+              </div>
+              {product.mrp && product.mrp !== product.selling_price && (
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#6c757d",
+                    textDecoration: "line-through",
+                  }}
+                >
+                  ₹{product.mrp}
+                </div>
+              )}
+            </div>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "#6c757d",
+                backgroundColor: "#f8f9fa",
+                padding: "2px 6px",
+                borderRadius: "4px",
+              }}
+            >
+              {product.quantity || "0"} pc
+            </div>
+          </div>
+
+          {/* Add Button */}
+          <button
+            className="btn btn-sm btn-primary w-100 mt-2"
+            style={{
+              fontSize: "10px",
+              padding: "4px 8px",
+              backgroundColor: isInCart ? "#059669" : "#3b82f6",
+              borderColor: isInCart ? "#059669" : "#3b82f6",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+          >
+            <i
+              className={`ti ${isInCart ? "ti-check" : "ti-plus"} me-1`}
+            ></i>
+            {isInCart ? "Added" : "Add"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 const Pos4 = () => {
+
   // ==================== STATE MANAGEMENT ====================
 
   const [activeTab, setActiveTab] = useState("all");
@@ -970,184 +1150,16 @@ const Pos4 = () => {
                             const isInCart = !!cartItem;
 
                             return (
-                              <div
+                              <ProductCard
                                 key={product.id}
-                                className="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2"
-                              >
-                                <div
-                                  className={`product-card ${isInCart ? "in-cart" : ""}`}
-                                  onClick={() => addToCart(product)}
-                                  style={{
-                                    position: "relative",
-                                    cursor: "pointer",
-                                    border: "1px solid #e9ecef",
-                                    borderRadius: "8px",
-                                    padding: "8px",
-                                    transition: "all 0.2s ease",
-                                    backgroundColor: isInCart ? "#f0f9ff" : "#fff",
-                                    borderColor: isInCart ? "#3b82f6" : "#e9ecef",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-                                    e.currentTarget.style.transform = "translateY(-2px)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.boxShadow = "none";
-                                    e.currentTarget.style.transform = "translateY(0)";
-                                  }}
-                                >
-                                  {/* In Cart Badge */}
-                                  {isInCart && (
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: "4px",
-                                        right: "4px",
-                                        backgroundColor: "#3b82f6",
-                                        color: "white",
-                                        borderRadius: "12px",
-                                        padding: "2px 6px",
-                                        fontSize: "10px",
-                                        fontWeight: "bold",
-                                        zIndex: 10,
-                                      }}
-                                    >
-                                      {cartItem?.quantity}x
-                                    </div>
-                                  )}
-
-                                  {/* Product Image */}
-                                  <div
-                                    style={{
-                                      position: "relative",
-                                      width: "100%",
-                                      paddingTop: "100%",
-                                      borderRadius: "6px",
-                                      overflow: "hidden",
-                                      backgroundColor: "#f8f9fa",
-                                      marginBottom: "6px",
-                                    }}
-                                  >
-                                    {product.product_images && product.product_images.length > 0 ? (
-                                      <img
-                                        alt={product.name}
-                                        src={`${URLS.ImageUrl}${product.product_images[0]}`}
-                                        onError={(e) => {
-                                          e.target.src = "https://via.placeholder.com/150?text=No+Image";
-                                        }}
-                                        style={{
-                                          position: "absolute",
-                                          top: 0,
-                                          left: 0,
-                                          width: "100%",
-                                          height: "100%",
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    ) : (
-                                      <div
-                                        style={{
-                                          position: "absolute",
-                                          top: 0,
-                                          left: 0,
-                                          width: "100%",
-                                          height: "100%",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          backgroundColor: "#e9ecef",
-                                        }}
-                                      >
-                                        <i
-                                          className="ti ti-photo"
-                                          style={{
-                                            fontSize: "32px",
-                                            color: "#adb5bd",
-                                          }}
-                                        ></i>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Product Info */}
-                                  <div>
-                                    <h6
-                                      style={{
-                                        fontSize: "11px",
-                                        fontWeight: "600",
-                                        margin: "0 0 4px 0",
-                                        lineHeight: "1.3",
-                                        height: "28px",
-                                        overflow: "hidden",
-                                        display: "-webkit-box",
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: "vertical",
-                                      }}
-                                      title={product.name}
-                                    >
-                                      {product.name}
-                                    </h6>
-
-                                    <div className="d-flex justify-content-between align-items-center">
-                                      <div>
-                                        <div
-                                          style={{
-                                            fontSize: "13px",
-                                            fontWeight: "bold",
-                                            color: "#059669",
-                                          }}
-                                        >
-                                          ₹{product.selling_price || product.purchase_price || "0"}
-                                        </div>
-                                        {product.mrp && product.mrp !== product.selling_price && (
-                                          <div
-                                            style={{
-                                              fontSize: "10px",
-                                              color: "#6c757d",
-                                              textDecoration: "line-through",
-                                            }}
-                                          >
-                                            ₹{product.mrp}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div
-                                        style={{
-                                          fontSize: "10px",
-                                          color: "#6c757d",
-                                          backgroundColor: "#f8f9fa",
-                                          padding: "2px 6px",
-                                          borderRadius: "4px",
-                                        }}
-                                      >
-                                        {product.quantity || "0"} pc
-                                      </div>
-                                    </div>
-
-                                    {/* Add Button */}
-                                    <button
-                                      className="btn btn-sm btn-primary w-100 mt-2"
-                                      style={{
-                                        fontSize: "10px",
-                                        padding: "4px 8px",
-                                        backgroundColor: isInCart ? "#059669" : "#3b82f6",
-                                        borderColor: isInCart ? "#059669" : "#3b82f6",
-                                      }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        addToCart(product);
-                                      }}
-                                    >
-                                      <i
-                                        className={`ti ${isInCart ? "ti-check" : "ti-plus"} me-1`}
-                                      ></i>
-                                      {isInCart ? "Added" : "Add"}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
+                                product={product}
+                                isInCart={isInCart}
+                                cartItemQty={cartItem?.quantity}
+                                onAddToCart={addToCart}
+                              />
                             );
                           })}
+
                         </div>
                       ) : (
                         !loading && (
