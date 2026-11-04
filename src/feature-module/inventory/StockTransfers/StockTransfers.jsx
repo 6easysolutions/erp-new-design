@@ -138,22 +138,20 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
-  // ⚡ Bolt: Optimized derived statistics calculation
-  // 💡 What: Consolidated 3 separate `.filter().length` passes into a single-pass `for...of` loop within `useMemo`.
-  // 🎯 Why: Previously, filtering large datasets inside the render function caused O(3N) overhead without memoization.
-  // 📊 Impact: Reduces O(3N) multiple iterations to O(N) single iteration, skipping redundant passes on unchanged data.
+  // ⚡ Bolt: Use useMemo and a single pass to calculate stats efficiently without redundant filters and lowercases
   const stats = useMemo(() => {
-    let dispatched = 0, inProgress = 0, draft = 0;
+    let dispatched = 0;
+    let inProgress = 0;
+    let draft = 0;
 
     for (const t of data) {
       if (!t.status) continue;
-
-      const statusLower = t.status.toLowerCase();
-      if (statusLower === "dispatched") {
+      const status = t.status.toLowerCase();
+      if (status === "dispatched") {
         dispatched++;
-      } else if (["pending", "approved", "approve"].includes(statusLower)) {
+      } else if (status === "pending" || status === "approved" || status === "approve") {
         inProgress++;
-      } else if (statusLower === "draft") {
+      } else if (status === "draft") {
         draft++;
       }
     }
