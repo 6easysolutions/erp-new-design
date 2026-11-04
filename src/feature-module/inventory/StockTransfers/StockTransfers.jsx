@@ -138,7 +138,7 @@ const StockTransferList = () => {
     return statusFilter === "All" || (t.status && t.status.toLowerCase() === statusFilter.toLowerCase());
   }), [data, statusFilter]);
 
-  // ⚡ Bolt: Consolidated multiple array filters into a single O(N) pass and wrapped in useMemo for better performance
+  // ⚡ Bolt: Use useMemo and a single pass to calculate stats efficiently without redundant filters and lowercases
   const stats = useMemo(() => {
     let dispatched = 0;
     let inProgress = 0;
