@@ -22,16 +22,19 @@ const Holidays = () => {
   const handleSearch = (value) => {
     setSearchQuery(value);
   };
-  // Memoize the filtered data to prevent expensive array filtering on every render
+
+  // Optimization: Memoize filtered data, extract toLowerCase() to prevent O(N*M) redundant string operations,
+  // iterate over values directly, and return early if searchText is empty.
   const filteredData = useMemo(() => {
+    if (!searchText) return datas;
+
+    const lowerSearchText = searchText.toLowerCase();
     return datas.filter((entry) => {
-      return Object.keys(entry).some((key) => {
-        return String(entry[key]).
-        toLowerCase().
-        includes(searchText.toLowerCase());
+      return Object.values(entry).some((val) => {
+        return String(val).toLowerCase().includes(lowerSearchText);
       });
     });
-  }, [datas, searchText]);
+  }, [searchText, datas]);
 
   const columns = [
   {
