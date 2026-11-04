@@ -51,15 +51,16 @@ const DataTables = () => {
     setSearchText(e.target.value);
   };
 
-  // ⚡ Bolt: Use useMemo to cache the filtered table data. This avoids recalculating the array
-  // filtering on every render cycle when other unrelated state changes occur.
-  const filteredData = useMemo(() => data.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+  // Optimization: Memoize filtered data and extract toLowerCase() to prevent O(N*M) redundant string operations
+  // This reduces unnecessary re-renders when other state changes occur
+  const filteredData = useMemo(() => {
+    const lowerSearchText = searchText.toLowerCase();
+    return data.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).toLowerCase().includes(lowerSearchText);
+      });
     });
-  }), [data, searchText]);
+  }, [searchText, data]);
   return (
     <div>
       <div className="page-wrapper">

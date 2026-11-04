@@ -117,15 +117,18 @@ const LeavesEmployee = () => {
 
 
   const [searchText] = useState("");
-  // ⚡ Bolt: Cache the result of filtering leavesEmployeedata with useMemo to avoid performance
-  // degradation by preventing O(N*M) string matching on unrelated state updates.
-  const filteredData = useMemo(() => leavesEmployeedata.filter((entry) => {
-    return Object.keys(entry).some((key) => {
-      return String(entry[key]).
-      toLowerCase().
-      includes(searchText.toLowerCase());
+
+  // ⚡ Bolt Performance Optimization: Memoize expensive filtering operation
+  // Expected impact: Prevents full dataset iteration on every render (e.g., when unrelated state changes)
+  const filteredData = useMemo(() => {
+    return leavesEmployeedata.filter((entry) => {
+      return Object.keys(entry).some((key) => {
+        return String(entry[key]).
+        toLowerCase().
+        includes(searchText.toLowerCase());
+      });
     });
-  }), [leavesEmployeedata, searchText]);
+  }, [leavesEmployeedata, searchText]);
 
   return (
     <div>
