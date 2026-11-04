@@ -68,6 +68,7 @@ const SalesList = () => {
   // 🔬 Measurement: Filter operations drop to zero cost when search is blank.
   const filteredData = useMemo(() => {
     if (!searchText) return saleslistdata;
+
     const lowerSearchText = searchText.toLowerCase();
     return saleslistdata.filter((entry) => {
       return Object.values(entry).some((val) => {

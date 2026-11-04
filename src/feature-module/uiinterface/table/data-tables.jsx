@@ -60,6 +60,7 @@ const DataTables = () => {
   // 🔬 Measurement: Filter operations drop to zero cost when search is blank.
   const filteredData = useMemo(() => {
     if (!searchText) return data;
+
     const lowerSearchText = searchText.toLowerCase();
     return data.filter((entry) => {
       return Object.values(entry).some((val) => {
