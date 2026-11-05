@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { URLS } from "../../../../Urls";
@@ -198,14 +198,26 @@ const Department = () => {
     navigate("/all-masters");
   };
 
-  const filteredData = departmentsData.filter((dept) =>
-    dept.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ⚡ Bolt Performance Optimization:
+  // 💡 What: Memoize filteredData with early return for empty search and hoist toLowerCase().
+  // 🎯 Why: Avoids redundant O(N) array filtering and string operations on unrelated state changes (form input, modal toggle, loading).
+  // 📊 Impact: O(1) when search is empty; skips re-filtering on unrelated re-renders.
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return departmentsData;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return departmentsData.filter((dept) =>
+      dept.name?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [departmentsData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  // ⚡ Bolt: Memoize paginatedData to avoid re-slicing on unrelated renders
+  const paginatedData = useMemo(() => {
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
