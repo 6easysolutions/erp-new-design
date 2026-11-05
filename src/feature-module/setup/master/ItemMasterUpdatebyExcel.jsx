@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
@@ -72,17 +72,22 @@ const ItemMasterUpdatebyExcel = () => {
     };
 
     // Filter data based on search term
-    const filteredData = uploadedData.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.date.includes(searchTerm) ||
-        item.fileName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Optimization: Memoize filtered data, add early return, and extract toLowerCase() outside the loop
+    const filteredData = useMemo(() => {
+        if (!searchTerm) return uploadedData;
+        const searchLower = searchTerm.toLowerCase();
+        return uploadedData.filter(item =>
+            item.name.toLowerCase().includes(searchLower) ||
+            item.date.includes(searchTerm) ||
+            item.fileName.toLowerCase().includes(searchLower)
+        );
+    }, [uploadedData, searchTerm]);
 
     // Pagination logic
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
+    const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
     const handlePreviousPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
