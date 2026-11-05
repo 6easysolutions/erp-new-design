@@ -1,0 +1,4 @@
+## 2026-07-09 - Client-Side HTML Sanitization for Untrusted API Fields
+**Vulnerability:** In `ProductView.jsx`, product descriptions (`short_description`, `large_description`) fetched from the server API were rendered via `dangerouslySetInnerHTML` without sanitization, exposing the app to Cross-Site Scripting (XSS).
+**Learning:** External sanitization libraries like `dompurify` are not installed in the repository's production dependencies, and installing new dependencies mutates `package.json` / `package-lock.json`. In browser environments, native `DOMParser` provides a robust, zero-dependency mechanism to parse HTML nodes, prune blacklisted elements (`<script>`, `<iframe>`, `<object>`, `<embed>`), remove inline event handlers (`on*`), and block dangerous URI schemes (`javascript:`).
+**Prevention:** Always sanitize any untrusted or API-provided rich-text HTML using `sanitizeHtml` before passing it to `dangerouslySetInnerHTML`.

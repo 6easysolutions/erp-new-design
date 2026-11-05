@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { URLS } from "../../../Urls";
+import { sanitizeHtml } from "../../../utils/sanitize/index.js";
 import {
   ArrowLeft, Edit, Package, Tag, Layers,
   ShoppingBag, Box, MapPin, Calendar, CheckCircle,
@@ -880,7 +881,8 @@ const ProductView = () => {
                         >
                           {product.short_description ? (
                             <div
-                              dangerouslySetInnerHTML={{ __html: product.short_description }}
+                              /* Security: Sanitize untrusted API HTML before injecting into DOM to prevent XSS */
+                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.short_description) }}
                             />
                           ) : (
                             <span style={{ color: "#94a3b8" }}>No short description available.</span>
@@ -917,7 +919,8 @@ const ProductView = () => {
                         >
                           {product.large_description ? (
                             <div
-                              dangerouslySetInnerHTML={{ __html: product.large_description }}
+                              /* Security: Sanitize untrusted API HTML before injecting into DOM to prevent XSS */
+                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.large_description) }}
                             />
                           ) : (
                             <span style={{ color: "#94a3b8" }}>No detailed description available.</span>
