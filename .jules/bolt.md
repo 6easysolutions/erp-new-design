@@ -15,3 +15,7 @@
 ## 2024-11-04 - [React Component Definition Anti-pattern]
 **Learning:** Defining functional components inline within the parent's render body completely defeats `useMemo` caching since the child component is recreated as a completely new type on every render.
 **Action:** Always extract child components outside of the parent and pass required state variables explicitly via props to ensure memoization and other hooks work as expected.
+
+## 2024-11-20 - [Consolidating Derived Array Statistics]
+**Learning:** Performing multiple independent \`.reduce()\` operations over a common array inside functional components leads to unnecessary O(M*N) JS operations per render cycle, which compounds heavily for large datasets.
+**Action:** Consolidate derivations by folding multiple passes into a single \`for...of\` loop wrapped within a single \`useMemo\` block to minimize array traversal overhead and prevent re-evaluation on unrelated renders. Ensure \`useMemo\` is explicitly imported if refactoring existing code without it.
