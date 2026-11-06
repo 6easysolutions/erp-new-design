@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { URLS } from "../../../../Urls";
@@ -221,23 +221,48 @@ const Designation = () => {
     navigate("/all-masters");
   };
 
-  const getDepartmentName = (departmentId) => {
-    const department = departmentsData.find((dept) => dept.id === departmentId);
-    return department ? department.name : "N/A";
-  };
+  // ⚡ Bolt Optimization:
+  // 1. Build a Map for O(1) department lookups instead of doing O(M) departmentsData.find()
+  //    for every designation on every search/render iteration.
+  const departmentMap = useMemo(() => {
+    const map = new Map();
+    departmentsData.forEach((dept) => {
+      map.set(dept.id, dept.name);
+    });
+    return map;
+  }, [departmentsData]);
 
-  const filteredData = designationsData.filter(
-    (designation) =>
-      designation.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getDepartmentName(designation.departmentId)
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
+  const getDepartmentName = useCallback(
+    (departmentId) => {
+      return departmentMap.get(departmentId) || "N/A";
+    },
+    [departmentMap]
   );
+
+  // ⚡ Bolt Performance Optimization:
+  // 💡 What: Memoize filteredData with early return for empty search, hoist toLowerCase(), and use O(1) department Map lookups.
+  // 🎯 Why: Avoids redundant O(N*M) nested array searches and string conversions on unrelated state changes (form input, modal toggle, loading).
+  // 📊 Impact: O(1) when search is empty; reduces filter complexity from O(N*M) to O(N) by replacing nested array find with Map lookup.
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return designationsData;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return designationsData.filter((designation) => {
+      const deptName = departmentMap.get(designation.departmentId) || "N/A";
+      return (
+        designation.name?.toLowerCase().includes(lowerSearchTerm) ||
+        deptName.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
+  }, [designationsData, departmentMap, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  // ⚡ Bolt: Memoize paginatedData to avoid re-slicing on unrelated renders
+  const paginatedData = useMemo(() => {
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
