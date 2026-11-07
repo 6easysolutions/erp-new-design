@@ -2,6 +2,53 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SidebarData1 } from "../../core/json/sidebar_dataone";
 
+// Pre-process and filter menu structure once at module level
+const MENU_STRUCTURE = SidebarData1.filter(
+  (category) => category.tittle !== "Main Menu" && category.tittle !== "UI Interface"
+);
+
+const DEFAULT_ACTIVE_MENU = Object.freeze({ main: "Dashboard", sub: null });
+
+// Pre-compute route mapping dictionary for O(1) route lookups
+const buildRouteMap = (menuStructure) => {
+  const map = new Map();
+
+  // Map root and dashboard routes first, matching original Dashboard special-case check
+  map.set("/sales-dashboard", DEFAULT_ACTIVE_MENU);
+  map.set("/", DEFAULT_ACTIVE_MENU);
+
+  for (const mainMenu of menuStructure) {
+    if (mainMenu.route && !map.has(mainMenu.route)) {
+      map.set(mainMenu.route, { main: mainMenu.tittle, sub: null });
+    }
+
+    if (mainMenu.subRoutes && mainMenu.subRoutes.length > 0) {
+      for (const subMenu of mainMenu.subRoutes) {
+        if (subMenu.route && !map.has(subMenu.route)) {
+          map.set(subMenu.route, { main: mainMenu.tittle, sub: subMenu.tittle });
+        }
+
+        if (subMenu.subRoutes && subMenu.subRoutes.length > 0) {
+          for (const subSubMenu of subMenu.subRoutes) {
+            if (subSubMenu.route && !map.has(subSubMenu.route)) {
+              map.set(subSubMenu.route, { main: mainMenu.tittle, sub: subMenu.tittle });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return map;
+};
+
+const ROUTE_TO_MENU_MAP = buildRouteMap(MENU_STRUCTURE);
+
+// Find active menu based on current route (O(1) lookup)
+export const findActiveMenuByRoute = (pathname) => {
+  return ROUTE_TO_MENU_MAP.get(pathname) || DEFAULT_ACTIVE_MENU;
+};
+
 const HorizontalSidebar = () => {
   const [activeMainMenu, setActiveMainMenu] = useState("Dashboard");
   const [activeSubMenu, setActiveSubMenu] = useState(null);
@@ -10,63 +57,11 @@ const HorizontalSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Get the restructured menu data
-  const getMenuStructure = () => {
-    const menuData = [];
-
-    // Process other categories (exclude "Main Menu" and "UI Interface")
-    SidebarData1.forEach((category) => {
-      if (category.tittle !== "Main Menu" && category.tittle !== "UI Interface") {
-        menuData.push(category);
-      }
-    });
-
-    return menuData;
-  };
-
-  const menuStructure = getMenuStructure();
-
-  // Find active menu based on current route
-  const findActiveMenuByRoute = () => {
-    const currentPath = location.pathname;
-
-    for (const mainMenu of menuStructure) {
-      // Check if it's Dashboard
-      if (mainMenu.tittle === "Dashboard" && (currentPath === "/sales-dashboard" || currentPath === "/")) {
-        return { main: "Dashboard", sub: null };
-      }
-
-      // Check if main menu has direct route (single item like "Sale", "Transfer Stock")
-      if (mainMenu.route && currentPath === mainMenu.route) {
-        return { main: mainMenu.tittle, sub: null };
-      }
-
-      // Check subRoutes
-      if (mainMenu.subRoutes && mainMenu.subRoutes.length > 0) {
-        for (const subMenu of mainMenu.subRoutes) {
-          // Check if subMenu has direct route
-          if (subMenu.route && currentPath === subMenu.route) {
-            return { main: mainMenu.tittle, sub: subMenu.tittle };
-          }
-
-          // Check sub-subRoutes (3rd level)
-          if (subMenu.subRoutes && subMenu.subRoutes.length > 0) {
-            for (const subSubMenu of subMenu.subRoutes) {
-              if (subSubMenu.route && currentPath === subSubMenu.route) {
-                return { main: mainMenu.tittle, sub: subMenu.tittle };
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return { main: "Dashboard", sub: null }; // Default to Dashboard
-  };
+  const menuStructure = MENU_STRUCTURE;
 
   // Set active menu on mount and route change
   useEffect(() => {
-    const activeMenus = findActiveMenuByRoute();
+    const activeMenus = findActiveMenuByRoute(location.pathname);
     setActiveMainMenu(activeMenus.main);
     setActiveSubMenu(activeMenus.sub);
   }, [location.pathname]);

@@ -198,26 +198,19 @@ const Department = () => {
     navigate("/all-masters");
   };
 
-  // ⚡ Bolt Performance Optimization:
-  // 💡 What: Memoize filteredData with early return for empty search and hoist toLowerCase().
-  // 🎯 Why: Avoids redundant O(N) array filtering and string operations on unrelated state changes (form input, modal toggle, loading).
-  // 📊 Impact: O(1) when search is empty; skips re-filtering on unrelated re-renders.
+  // Optimization: Memoize filtered data, add early return, and extract toLowerCase() outside the loop
   const filteredData = useMemo(() => {
     if (!searchTerm) return departmentsData;
-    const lowerSearchTerm = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
     return departmentsData.filter((dept) =>
-      dept.name?.toLowerCase().includes(lowerSearchTerm)
+      dept.name?.toLowerCase().includes(searchLower)
     );
   }, [departmentsData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-
-  // ⚡ Bolt: Memoize paginatedData to avoid re-slicing on unrelated renders
-  const paginatedData = useMemo(() => {
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, startIndex, endIndex]);
+  const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);

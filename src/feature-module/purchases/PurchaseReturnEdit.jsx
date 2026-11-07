@@ -431,8 +431,6 @@ const PurchaseReturnEdit = () => {
         storeId: localStorage.getItem("selectedStoreId")
       };
 
-      console.log("Updating purchase return payload:", JSON.stringify(payload, null, 2));
-
       const config = getAxiosConfig();
       const response = await axios.put(
         `${URLS.PurchaseReturnEdit}/${selectedReturn.id}`,
