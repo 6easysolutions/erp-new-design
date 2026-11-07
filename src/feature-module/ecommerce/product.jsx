@@ -105,13 +105,13 @@ const Products = () => {
 
     body: () =>
     <div className="edit-delete-action">
-          <Link className="me-2 edit-icon p-2" to={route.productdetails}>
+          <Link aria-label="View product details" className="me-2 edit-icon p-2" to={route.productdetails}>
             <i className="feather icon-eye action-eye" />
           </Link>
-          <Link className="me-2 p-2" to={route.editproduct}>
+          <Link aria-label="Edit product" className="me-2 p-2" to={route.editproduct}>
             <i className="feather icon-edit feather-edit" />
           </Link>
-          <Link className="p-2" to="#">
+          <Link aria-label="Delete product" className="p-2" to="#">
             <i className="feather icon-trash-2" />
           </Link>
         </div>,
