@@ -239,6 +239,22 @@ const Designation = () => {
     );
   }, [designationsData, searchTerm, departmentsData]);
 
+  // ⚡ Bolt Performance Optimization:
+  // 💡 What: Memoize filteredData with early return for empty search, hoist toLowerCase(), and use O(1) department Map lookups.
+  // 🎯 Why: Avoids redundant O(N*M) nested array searches and string conversions on unrelated state changes (form input, modal toggle, loading).
+  // 📊 Impact: O(1) when search is empty; reduces filter complexity from O(N*M) to O(N) by replacing nested array find with Map lookup.
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return designationsData;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return designationsData.filter((designation) => {
+      const deptName = departmentMap.get(designation.departmentId) || "N/A";
+      return (
+        designation.name?.toLowerCase().includes(lowerSearchTerm) ||
+        deptName.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
+  }, [designationsData, departmentMap, searchTerm]);
+
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
