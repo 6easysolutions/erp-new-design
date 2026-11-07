@@ -638,11 +638,17 @@ const PurchaseReturns = () => {
   const formatDate    = (d) => { try { return new Date(d).toLocaleDateString("en-IN"); } catch { return "N/A"; } };
   const formatTime    = (d) => { try { return new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }); } catch { return "N/A"; } };
 
-  // ⚡ Bolt: Memoized supplier name lookup to skip array searching when selection hasn't changed
-  const getSupplierName = useMemo(() => suppliers.find((s) => s.value === selectedSupplier)?.label || "N/A", [suppliers, selectedSupplier]);
+  // ⚡ Bolt: Memoized supplier option lookup and derived supplier name to skip array searching when selection hasn't changed
+  const selectedSupplierOption = useMemo(
+    () => suppliers.find((s) => s.value === selectedSupplier) || null,
+    [suppliers, selectedSupplier]
+  );
+  const getSupplierName = selectedSupplierOption?.label || "N/A";
 
-  const selectedSupplierOption = suppliers.find((s) => s.value === selectedSupplier) || null;
-  const selectedReturnTypeOption = returnTypeOptions.find((o) => o.value === returnType) || null;
+  const selectedReturnTypeOption = useMemo(
+    () => returnTypeOptions.find((o) => o.value === returnType) || null,
+    [returnType]
+  );
 
   // ⚡ Bolt: Memoized selection filter to prevent recalculating table data on unrelated state changes
   const filteredSelectedPurchaseItems = useMemo(() => {
