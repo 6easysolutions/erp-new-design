@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { URLS } from "../../../../Urls";
 import axios from "axios";
@@ -289,17 +289,22 @@ const Organization = () => {
     setShowAddForm(!showAddForm);
   };
 
-  const filteredData = organizationsData.filter(
-    (org) =>
-      org.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.orgCode?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Optimization: Memoize filtered data, add early return, and extract toLowerCase() outside the loop
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return organizationsData;
+    const searchLower = searchTerm.toLowerCase();
+    return organizationsData.filter(
+      (org) =>
+        org.name?.toLowerCase().includes(searchLower) ||
+        org.email?.toLowerCase().includes(searchLower) ||
+        org.orgCode?.toLowerCase().includes(searchLower)
+    );
+  }, [organizationsData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);

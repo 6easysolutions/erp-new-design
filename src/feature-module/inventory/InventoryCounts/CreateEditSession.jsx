@@ -104,11 +104,30 @@ const CreateEditSession = () => {
   ];
 
   // ── Totals ─────────────────────────────────────────────────────────────────
-  const totalItems      = items.length;
-  const totalSystemQty  = items.reduce((s, i) => s + i.systemQty, 0);
-  const totalPhysicalQty = items.reduce((s, i) => s + i.physicalQty, 0);
-  const totalVariance   = totalPhysicalQty - totalSystemQty;
-  const totalVarianceValue = items.reduce((s, i) => s + i.varianceValue, 0);
+  const totalItems = items.length;
+
+  // ⚡ Bolt: Consolidated derived statistics into a single-pass useMemo
+  // 💡 What: Replaced multiple .reduce() calls with a single useMemo containing a for...of loop.
+  // 🎯 Why: Avoids iterating over the `items` array multiple times (O(3N) -> O(N)) and prevents recalculation on unrelated re-renders.
+  // 📊 Impact: Substantially reduces JS overhead and render time for large lists.
+  // 🔬 Measurement: Observe CPU profiles showing reduced array iterations during component updates.
+  const { totalSystemQty, totalPhysicalQty, totalVarianceValue } = useMemo(() => {
+    let tSystem = 0;
+    let tPhysical = 0;
+    let tVarianceVal = 0;
+    for (const item of items) {
+      tSystem += item.systemQty;
+      tPhysical += item.physicalQty;
+      tVarianceVal += item.varianceValue;
+    }
+    return {
+      totalSystemQty: tSystem,
+      totalPhysicalQty: tPhysical,
+      totalVarianceValue: tVarianceVal,
+    };
+  }, [items]);
+
+  const totalVariance = totalPhysicalQty - totalSystemQty;
 
   // ── Load items ─────────────────────────────────────────────────────────────
   const handleLoadItems = async () => {

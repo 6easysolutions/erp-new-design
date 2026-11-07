@@ -1,5 +1,3 @@
-# Palette's Journal
-
-## 2025-05-18 - Icon-Only Table Toolbar Action Accessibility
-**Learning:** Shared components like `TableTopHead` are reused across dozens of ERP list views (inventory, finance, hrm, sales). Icon-only buttons with generic `alt="img"` and no `aria-label` or `aria-expanded` state leave screen reader users completely unaware of table export and collapse functions.
-**Action:** Always provide explicit `aria-label` attributes on icon-only links/buttons and ensure toggle actions accurately reflect their dynamic state (both via aria-label and aria-expanded).
+## 2024-11-06 - Missing ARIA Labels on Icon-only Action Buttons
+**Learning:** Icon-only action buttons across the `feature-module/setup` section are frequently implemented without `aria-label` attributes (e.g., `SalesMan.jsx` action buttons). While they include a `title` attribute which provides a tooltip, `aria-label` is required for robust screen reader accessibility.
+**Action:** When working on setup pages, ensure that icon-only buttons include an `aria-label` that mirrors their intended action.

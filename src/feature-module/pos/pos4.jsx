@@ -23,6 +23,7 @@ import CommonSelect from "../../components/select/common-select";
 import { URLS } from "../../Urls";
 import AddProductModal from "../setup/master/AllMaster/AddProductModal";
 import CustomerFormModal from "../setup/master/AllMaster/CustomerFormModal";
+import { normalizeProductResponse } from "../../utils/product";
 
 // ⚡ Bolt Optimization: Define array outside the component to prevent recreation on every render
 const CATEGORY_IMAGES = [
@@ -709,8 +710,7 @@ const Pos4 = () => {
 
       if (response.data.success && response.data.data) {
         // FIX: Handle both array and single object responses
-        const productData = response.data.data;
-        const products = Array.isArray(productData) ? productData : [productData];
+        const products = normalizeProductResponse(response.data.data);
 
         if (products.length > 0) {
           const product = products[0];
