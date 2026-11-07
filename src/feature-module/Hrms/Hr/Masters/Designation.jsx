@@ -221,9 +221,21 @@ const Designation = () => {
     navigate("/all-masters");
   };
 
+  // ⚡ Bolt Optimization: Hash map for department lookups
+  // 💡 What: Replaced O(M) linear array lookup with an O(1) Map lookup.
+  // 🎯 Why: Designation table filtering and row rendering previously invoked departmentsData.find(...) O(N) times per search/render cycle.
+  // 📊 Impact: Converts department resolution from O(N * M) to O(N) overall.
+  // 🔬 Measurement: O(1) hash map access during list filtering and pagination rendering.
+  const departmentMap = useMemo(() => {
+    const map = new Map();
+    departmentsData.forEach((dept) => {
+      map.set(dept.id, dept.name);
+    });
+    return map;
+  }, [departmentsData]);
+
   const getDepartmentName = (departmentId) => {
-    const department = departmentsData.find((dept) => dept.id === departmentId);
-    return department ? department.name : "N/A";
+    return departmentMap.get(departmentId) || "N/A";
   };
 
   // Optimization: Memoize filtered data, add early return, and extract toLowerCase() outside the loop
@@ -234,10 +246,26 @@ const Designation = () => {
       (designation) =>
         designation.name?.toLowerCase().includes(searchLower) ||
         getDepartmentName(designation.departmentId)
-          ?.toLowerCase()
+          .toLowerCase()
           .includes(searchLower)
     );
-  }, [designationsData, searchTerm, departmentsData]);
+  }, [designationsData, searchTerm, departmentMap]);
+
+  // ⚡ Bolt Performance Optimization:
+  // 💡 What: Memoize filteredData with early return for empty search, hoist toLowerCase(), and use O(1) department Map lookups.
+  // 🎯 Why: Avoids redundant O(N*M) nested array searches and string conversions on unrelated state changes (form input, modal toggle, loading).
+  // 📊 Impact: O(1) when search is empty; reduces filter complexity from O(N*M) to O(N) by replacing nested array find with Map lookup.
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return designationsData;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return designationsData.filter((designation) => {
+      const deptName = departmentMap.get(designation.departmentId) || "N/A";
+      return (
+        designation.name?.toLowerCase().includes(lowerSearchTerm) ||
+        deptName.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
+  }, [designationsData, departmentMap, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;

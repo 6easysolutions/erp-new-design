@@ -125,7 +125,6 @@ const Sale = () => {
             return;
         }
         setIsAdvancePaid(true);
-        console.log(`Advance Payment of ₹${advanceAmount} verified & logged.`);
     };
 
     return (

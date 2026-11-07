@@ -181,10 +181,10 @@ const SalesMan = () => {
     const actionBodyTemplate = (rowData) => {
         return (
             <div className="d-flex gap-2">
-                <button className="btn btn-icon btn-sm btn-light-primary" title="Edit" onClick={() => handleEdit(rowData)}>
+                <button className="btn btn-icon btn-sm btn-light-primary" title="Edit" aria-label="Edit" onClick={() => handleEdit(rowData)}>
                     <Edit2 size={16} />
                 </button>
-                <button className="btn btn-icon btn-sm btn-light-danger" title="Delete" onClick={() => handleDelete(rowData.id)}>
+                <button className="btn btn-icon btn-sm btn-light-danger" title="Delete" aria-label="Delete" onClick={() => handleDelete(rowData.id)}>
                     <Trash2 size={16} />
                 </button>
             </div>
