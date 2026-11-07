@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { getTotalFromArray, sanitizeStringWithUnderscores } from './index';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getTotalFromArray, formatSharedDate } from './index';
 
 describe('getTotalFromArray', () => {
   it('should return 6 for [1, 2, 3]', () => {
@@ -26,73 +26,83 @@ describe('getTotalFromArray', () => {
   });
 });
 
-describe('sanitizeStringWithUnderscores', () => {
-  describe('non-string inputs', () => {
-    it('should return empty string when input is null or undefined', () => {
-      expect(sanitizeStringWithUnderscores(null)).toBe('');
-      expect(sanitizeStringWithUnderscores(undefined)).toBe('');
+describe('formatSharedDate', () => {
+  const FIXED_NOW = new Date(2025, 5, 15, 12, 0, 0); // June 15, 2025 12:00:00
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  describe('falsy or invalid input handling', () => {
+    it('should return "-" when input is null, undefined, or empty string', () => {
+      expect(formatSharedDate(null)).toBe('-');
+      expect(formatSharedDate(undefined)).toBe('-');
+      expect(formatSharedDate('')).toBe('-');
     });
 
-    it('should return empty string when input is a number or boolean', () => {
-      expect(sanitizeStringWithUnderscores(123)).toBe('');
-      expect(sanitizeStringWithUnderscores(0)).toBe('');
-      expect(sanitizeStringWithUnderscores(true)).toBe('');
-      expect(sanitizeStringWithUnderscores(false)).toBe('');
-    });
-
-    it('should return empty string when input is an object, array, or function', () => {
-      expect(sanitizeStringWithUnderscores({})).toBe('');
-      expect(sanitizeStringWithUnderscores([])).toBe('');
-      expect(sanitizeStringWithUnderscores(() => {})).toBe('');
+    it('should return "-" when input represents an invalid date', () => {
+      expect(formatSharedDate('invalid-date-string')).toBe('-');
+      expect(formatSharedDate('not a date')).toBe('-');
     });
   });
 
-  describe('empty and whitespace-only strings', () => {
-    it('should return empty string for an empty string', () => {
-      expect(sanitizeStringWithUnderscores('')).toBe('');
-    });
-
-    it('should return empty string for strings containing only spaces', () => {
-      expect(sanitizeStringWithUnderscores(' ')).toBe('');
-      expect(sanitizeStringWithUnderscores('     ')).toBe('');
-    });
-
-    it('should return empty string for strings containing tabs, newlines, and mixed whitespace', () => {
-      expect(sanitizeStringWithUnderscores('\t\n\r  ')).toBe('');
+  describe('same day ("Today")', () => {
+    it('should return "Today" for dates on the same calendar day', () => {
+      // Exactly same time
+      expect(formatSharedDate(new Date(2025, 5, 15, 12, 0, 0))).toBe('Today');
+      // Earlier in same day
+      expect(formatSharedDate(new Date(2025, 5, 15, 1, 0, 0))).toBe('Today');
+      // Later in same day
+      expect(formatSharedDate(new Date(2025, 5, 15, 23, 59, 59))).toBe('Today');
     });
   });
 
-  describe('single-word strings', () => {
-    it('should return single word as-is without spaces', () => {
-      expect(sanitizeStringWithUnderscores('hello')).toBe('hello');
-      expect(sanitizeStringWithUnderscores('Product')).toBe('Product');
-      expect(sanitizeStringWithUnderscores('already_underscored')).toBe('already_underscored');
+  describe('past dates', () => {
+    it('should return "1 day ago" for dates exactly 1 calendar day in the past', () => {
+      expect(formatSharedDate(new Date(2025, 5, 14, 12, 0, 0))).toBe('1 day ago');
+      expect(formatSharedDate(new Date(2025, 5, 14, 23, 59, 59))).toBe('1 day ago');
+      expect(formatSharedDate(new Date(2025, 5, 14, 0, 0, 0))).toBe('1 day ago');
     });
 
-    it('should trim leading and trailing spaces on single words', () => {
-      expect(sanitizeStringWithUnderscores('  hello  ')).toBe('hello');
-      expect(sanitizeStringWithUnderscores('\tworld\n')).toBe('world');
+    it('should return "X days ago" for dates multiple days in the past', () => {
+      expect(formatSharedDate(new Date(2025, 5, 10, 12, 0, 0))).toBe('5 days ago');
+      expect(formatSharedDate(new Date(2025, 4, 15, 12, 0, 0))).toBe('31 days ago');
     });
   });
 
-  describe('multi-word strings', () => {
-    it('should replace single spaces between words with underscores', () => {
-      expect(sanitizeStringWithUnderscores('hello world')).toBe('hello_world');
-      expect(sanitizeStringWithUnderscores('Add New Product')).toBe('Add_New_Product');
+  describe('future dates', () => {
+    it('should return "In 1 day" for dates exactly 1 calendar day in the future', () => {
+      expect(formatSharedDate(new Date(2025, 5, 16, 12, 0, 0))).toBe('In 1 day');
+      expect(formatSharedDate(new Date(2025, 5, 16, 0, 0, 0))).toBe('In 1 day');
+      expect(formatSharedDate(new Date(2025, 5, 16, 23, 59, 59))).toBe('In 1 day');
     });
 
-    it('should collapse multiple consecutive spaces into a single underscore', () => {
-      expect(sanitizeStringWithUnderscores('hello    world')).toBe('hello_world');
-      expect(sanitizeStringWithUnderscores('multiple   spaced    words   here')).toBe('multiple_spaced_words_here');
+    it('should return "In X days" for dates multiple days in the future', () => {
+      expect(formatSharedDate(new Date(2025, 5, 18, 12, 0, 0))).toBe('In 3 days');
+      expect(formatSharedDate(new Date(2025, 6, 15, 12, 0, 0))).toBe('In 30 days');
+    });
+  });
+
+  describe('different input formats', () => {
+    it('should accept Date objects', () => {
+      expect(formatSharedDate(new Date(2025, 5, 15))).toBe('Today');
+      expect(formatSharedDate(new Date(2025, 5, 14))).toBe('1 day ago');
     });
 
-    it('should trim leading/trailing whitespace and replace inner spaces with underscores', () => {
-      expect(sanitizeStringWithUnderscores('   leading and trailing   ')).toBe('leading_and_trailing');
-      expect(sanitizeStringWithUnderscores('\n hello \t world \r\n')).toBe('hello_world');
+    it('should accept date strings', () => {
+      // Local date string or ISO format
+      const dateStr = new Date(2025, 5, 13).toISOString();
+      expect(formatSharedDate(dateStr)).toBe('2 days ago');
     });
 
-    it('should preserve special characters while replacing spaces with underscores', () => {
-      expect(sanitizeStringWithUnderscores('item #1 (category: test)')).toBe('item_#1_(category:_test)');
+    it('should accept timestamp numbers', () => {
+      const timestamp = new Date(2025, 5, 17, 10, 0, 0).getTime();
+      expect(formatSharedDate(timestamp)).toBe('In 2 days');
     });
   });
 });
