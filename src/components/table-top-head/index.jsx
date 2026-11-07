@@ -21,6 +21,7 @@ const TableTopHead = () => {
             className="pr-tooltip"
             data-pr-tooltip="Pdf"
             data-pr-position="top"
+            aria-label="Export as PDF"
           >
             <img src={pdf} alt="img" />
           </Link>
@@ -31,6 +32,7 @@ const TableTopHead = () => {
             className="pr-tooltip"
             data-pr-tooltip="Excel"
             data-pr-position="top"
+            aria-label="Export as Excel"
           >
             <img src={excel} alt="img" />
           </Link>
@@ -41,6 +43,7 @@ const TableTopHead = () => {
             className="pr-tooltip"
             data-pr-tooltip="Refresh"
             data-pr-position="top"
+            aria-label="Refresh table"
           >
             <i className="ti ti-refresh" />
           </Link>
@@ -49,9 +52,11 @@ const TableTopHead = () => {
           <Link
             to="#"
             className="pr-tooltip"
-            data-pr-tooltip="Collapse"
+            data-pr-tooltip={toggleHeader ? "Expand" : "Collapse"}
             data-pr-position="top"
             id="collapse-header"
+            aria-label={toggleHeader ? "Expand header" : "Collapse header"}
+            aria-expanded={!toggleHeader}
             onClick={handleToggleHeader}
           >
             <i
