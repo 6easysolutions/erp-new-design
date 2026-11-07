@@ -9,7 +9,6 @@ import { Eye, Edit, ChevronDown, Package, Plus, Download, Filter, X } from "reac
 import axios from "axios";
 import { URLS } from "../../../Urls";
 import debounce from "lodash.debounce";
-import React, { useMemo } from "react";
 
 // -------------------- FilterDropdown component (extracted for memoization) --------------------
 // ⚡ Bolt: Component extracted outside of ProductsList to avoid continuous unmounting/remounting
@@ -362,14 +361,46 @@ const ProductsList = () => {
   };
 
   // -------------------- Map product data using dropdowns --------------------
-  const mappedProducts = useMemo(() => {
-    // ⚡ Bolt Performance Optimization: Replace O(N²) nested `.find()` loops with O(N) hash map lookups.
-    // By pre-computing maps for categories, subcategories, and brands, we reduce the time complexity
-    // of rendering the products list from O(Products * Dropdowns) to O(Products + Dropdowns).
-    const categoryMap = new Map(dropdowns.categories.map((c) => [c.id, c.name]));
-    const subCategoryMap = new Map(dropdowns.subcategories.map((s) => [s.id, s.name]));
-    const brandMap = new Map(dropdowns.brands.map((b) => [b.id, b.name]));
+  // ⚡ Bolt Performance Optimization: Pre-index dropdown lookup maps independently with useMemo.
+  // Instead of re-allocating Map instances and intermediate 2D tuple arrays on every product update or re-render,
+  // we memoize each lookup map so that product mapping executes in pure O(N) time with O(1) lookups.
+  const categoryMap = useMemo(() => {
+    const map = new Map();
+    const categories = dropdowns.categories || [];
+    for (let i = 0; i < categories.length; i++) {
+      const c = categories[i];
+      if (c && c.id != null) {
+        map.set(c.id, c.name);
+      }
+    }
+    return map;
+  }, [dropdowns.categories]);
 
+  const subCategoryMap = useMemo(() => {
+    const map = new Map();
+    const subcategories = dropdowns.subcategories || [];
+    for (let i = 0; i < subcategories.length; i++) {
+      const s = subcategories[i];
+      if (s && s.id != null) {
+        map.set(s.id, s.name);
+      }
+    }
+    return map;
+  }, [dropdowns.subcategories]);
+
+  const brandMap = useMemo(() => {
+    const map = new Map();
+    const brands = dropdowns.brands || [];
+    for (let i = 0; i < brands.length; i++) {
+      const b = brands[i];
+      if (b && b.id != null) {
+        map.set(b.id, b.name);
+      }
+    }
+    return map;
+  }, [dropdowns.brands]);
+
+  const mappedProducts = useMemo(() => {
     // Helper to find name by ID using maps (O(1) lookup)
     const getCategoryName = (id) => categoryMap.get(id) || "N/A";
     const getSubcategoryName = (id) => subCategoryMap.get(id) || "N/A";
@@ -392,7 +423,7 @@ const ProductsList = () => {
       qty: item.quantity || "0",
       createdby: item.vendorName || "N/A",
     }));
-  }, [products, dropdowns]);
+  }, [products, categoryMap, subCategoryMap, brandMap]);
 
   // -------------------- Filter dropdown helpers --------------------
   const activeFilterCount = Object.values(filters).filter((v) => v !== "All").length;

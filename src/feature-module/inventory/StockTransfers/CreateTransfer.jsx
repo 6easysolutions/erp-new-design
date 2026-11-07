@@ -97,9 +97,26 @@ const LoadItemsModal = ({ onClose, onAddItems, alreadyAddedIds = [], sourceStore
 
   const handleAdd = () => {
     if (selected.length === 0) return;
+    const sourceStoreId = sourceStore?.id;
+    // Convert stores to an object map keyed by storeId per product before the map loop
+    const storesByProduct = {};
+    for (let i = 0; i < selected.length; i++) {
+      const p = selected[i];
+      if (Array.isArray(p.stores)) {
+        const storeMap = {};
+        for (let j = 0; j < p.stores.length; j++) {
+          const s = p.stores[j];
+          if (s && s.storeId !== undefined) {
+            storeMap[s.storeId] = s;
+          }
+        }
+        storesByProduct[p.id] = storeMap;
+      }
+    }
+
     // Map selected products to the format expected by parent
     const selectedWithStoreQty = selected.map(p => {
-      const storeData = p.stores?.find(s => s.storeId === sourceStore.id);
+      const storeData = storesByProduct[p.id]?.[sourceStoreId];
       const availableQty = storeData ? parseInt(storeData.quantity, 10) : 0;
       return {
         id: p.id,
