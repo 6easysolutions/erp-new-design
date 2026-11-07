@@ -113,10 +113,6 @@ const Signin = () => {
           localStorage.removeItem("rememberedEmail");
         }
 
-        // Show success message (optional - remove if not needed)
-        // You can use a toast notification library here
-        console.log("Login successful:", data.message);
-
         // Redirect to sales dashboard
         navigate("/sales-dashboard");
       } else {

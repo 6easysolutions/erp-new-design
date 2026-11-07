@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { URLS } from "../../../../Urls";
@@ -198,14 +198,19 @@ const Team = () => {
     navigate("/all-masters");
   };
 
-  const filteredData = departmentsData.filter((dept) =>
-    dept.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Optimization: Memoize filtered data, add early return, and extract toLowerCase() outside the loop
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return departmentsData;
+    const searchLower = searchTerm.toLowerCase();
+    return departmentsData.filter((dept) =>
+      dept.name?.toLowerCase().includes(searchLower)
+    );
+  }, [departmentsData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
