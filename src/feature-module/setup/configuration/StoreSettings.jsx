@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { URLS } from '../../../Urls';
 
@@ -49,18 +49,28 @@ const StoreSettings = () => {
   };
 
   // Filter stores based on search term
-  const filteredStores = stores.filter((store) =>
-    store.storeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    store.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    store.storePhone?.includes(searchTerm) ||
-    store.serviceName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStores = useMemo(() => {
+    if (!searchTerm) return stores;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return stores.filter((store) =>
+      store.storeName?.toLowerCase().includes(lowerSearchTerm) ||
+      store.email?.toLowerCase().includes(lowerSearchTerm) ||
+      store.storePhone?.includes(searchTerm) ||
+      store.serviceName?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [stores, searchTerm]);
 
   // Pagination logic
-  const indexOfLastStore = currentPage * rowsPerPage;
-  const indexOfFirstStore = indexOfLastStore - rowsPerPage;
-  const currentStores = filteredStores.slice(indexOfFirstStore, indexOfLastStore);
-  const totalPages = Math.ceil(filteredStores.length / rowsPerPage);
+  const { currentStores, totalPages, indexOfFirstStore, indexOfLastStore } = useMemo(() => {
+    const lastIndex = currentPage * rowsPerPage;
+    const firstIndex = lastIndex - rowsPerPage;
+    return {
+      indexOfLastStore: lastIndex,
+      indexOfFirstStore: firstIndex,
+      currentStores: filteredStores.slice(firstIndex, lastIndex),
+      totalPages: Math.ceil(filteredStores.length / rowsPerPage)
+    };
+  }, [filteredStores, currentPage, rowsPerPage]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
