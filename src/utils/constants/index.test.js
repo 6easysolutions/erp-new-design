@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { getTotalFromArray, filterByMatchingCodes } from './index';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getTotalFromArray, formatSharedDate } from './index';
 
 describe('getTotalFromArray', () => {
   it('should return 6 for [1, 2, 3]', () => {
@@ -26,85 +26,83 @@ describe('getTotalFromArray', () => {
   });
 });
 
-describe('filterByMatchingCodes', () => {
-  it('should return empty array if dataArray or codeArray is not an array', () => {
-    expect(filterByMatchingCodes(null, ['A'])).toEqual([]);
-    expect(filterByMatchingCodes(undefined, ['A'])).toEqual([]);
-    expect(filterByMatchingCodes('not-an-array', ['A'])).toEqual([]);
-    expect(filterByMatchingCodes({ code: 'A' }, ['A'])).toEqual([]);
-    expect(filterByMatchingCodes(123, ['A'])).toEqual([]);
+describe('formatSharedDate', () => {
+  const FIXED_NOW = new Date(2025, 5, 15, 12, 0, 0); // June 15, 2025 12:00:00
 
-    expect(filterByMatchingCodes([{ code: 'A' }], null)).toEqual([]);
-    expect(filterByMatchingCodes([{ code: 'A' }], undefined)).toEqual([]);
-    expect(filterByMatchingCodes([{ code: 'A' }], 'A')).toEqual([]);
-    expect(filterByMatchingCodes([{ code: 'A' }], { 0: 'A' })).toEqual([]);
-    expect(filterByMatchingCodes([{ code: 'A' }], 123)).toEqual([]);
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
   });
 
-  it('should return empty array when dataArray or codeArray is empty', () => {
-    expect(filterByMatchingCodes([], ['A', 'B'])).toEqual([]);
-    expect(filterByMatchingCodes([{ code: 'A' }], [])).toEqual([]);
-    expect(filterByMatchingCodes([], [])).toEqual([]);
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
-  it('should filter items whose code matches any string in codeArray', () => {
-    const data = [
-      { code: 'A', name: 'Item A' },
-      { code: 'B', name: 'Item B' },
-      { code: 'C', name: 'Item C' },
-    ];
-    const codes = ['A', 'C'];
-    const result = filterByMatchingCodes(data, codes);
+  describe('falsy or invalid input handling', () => {
+    it('should return "-" when input is null, undefined, or empty string', () => {
+      expect(formatSharedDate(null)).toBe('-');
+      expect(formatSharedDate(undefined)).toBe('-');
+      expect(formatSharedDate('')).toBe('-');
+    });
 
-    expect(result).toEqual([
-      { code: 'A', name: 'Item A' },
-      { code: 'C', name: 'Item C' },
-    ]);
+    it('should return "-" when input represents an invalid date', () => {
+      expect(formatSharedDate('invalid-date-string')).toBe('-');
+      expect(formatSharedDate('not a date')).toBe('-');
+    });
   });
 
-  it('should ignore non-string codes in codeArray', () => {
-    const data = [
-      { code: '100', name: 'Item 100' },
-      { code: 'B', name: 'Item B' },
-    ];
-    const codes = [100, null, undefined, {}, true, 'B'];
-    const result = filterByMatchingCodes(data, codes);
-
-    expect(result).toEqual([{ code: 'B', name: 'Item B' }]);
+  describe('same day ("Today")', () => {
+    it('should return "Today" for dates on the same calendar day', () => {
+      // Exactly same time
+      expect(formatSharedDate(new Date(2025, 5, 15, 12, 0, 0))).toBe('Today');
+      // Earlier in same day
+      expect(formatSharedDate(new Date(2025, 5, 15, 1, 0, 0))).toBe('Today');
+      // Later in same day
+      expect(formatSharedDate(new Date(2025, 5, 15, 23, 59, 59))).toBe('Today');
+    });
   });
 
-  it('should safely filter out null, undefined, primitives, or malformed items in dataArray', () => {
-    const data = [
-      null,
-      undefined,
-      'just-a-string',
-      123,
-      true,
-      {},
-      { name: 'Missing code' },
-      { code: 123, name: 'Number code' },
-      { code: null, name: 'Null code' },
-      { code: undefined, name: 'Undefined code' },
-      { code: 'MATCH', name: 'Valid Item' },
-    ];
-    const codes = ['MATCH'];
-    const result = filterByMatchingCodes(data, codes);
+  describe('past dates', () => {
+    it('should return "1 day ago" for dates exactly 1 calendar day in the past', () => {
+      expect(formatSharedDate(new Date(2025, 5, 14, 12, 0, 0))).toBe('1 day ago');
+      expect(formatSharedDate(new Date(2025, 5, 14, 23, 59, 59))).toBe('1 day ago');
+      expect(formatSharedDate(new Date(2025, 5, 14, 0, 0, 0))).toBe('1 day ago');
+    });
 
-    expect(result).toEqual([{ code: 'MATCH', name: 'Valid Item' }]);
+    it('should return "X days ago" for dates multiple days in the past', () => {
+      expect(formatSharedDate(new Date(2025, 5, 10, 12, 0, 0))).toBe('5 days ago');
+      expect(formatSharedDate(new Date(2025, 4, 15, 12, 0, 0))).toBe('31 days ago');
+    });
   });
 
-  it('should return all matching items when multiple items share the same code', () => {
-    const data = [
-      { id: 1, code: 'DUP' },
-      { id: 2, code: 'OTHER' },
-      { id: 3, code: 'DUP' },
-    ];
-    const codes = ['DUP'];
-    const result = filterByMatchingCodes(data, codes);
+  describe('future dates', () => {
+    it('should return "In 1 day" for dates exactly 1 calendar day in the future', () => {
+      expect(formatSharedDate(new Date(2025, 5, 16, 12, 0, 0))).toBe('In 1 day');
+      expect(formatSharedDate(new Date(2025, 5, 16, 0, 0, 0))).toBe('In 1 day');
+      expect(formatSharedDate(new Date(2025, 5, 16, 23, 59, 59))).toBe('In 1 day');
+    });
 
-    expect(result).toEqual([
-      { id: 1, code: 'DUP' },
-      { id: 3, code: 'DUP' },
-    ]);
+    it('should return "In X days" for dates multiple days in the future', () => {
+      expect(formatSharedDate(new Date(2025, 5, 18, 12, 0, 0))).toBe('In 3 days');
+      expect(formatSharedDate(new Date(2025, 6, 15, 12, 0, 0))).toBe('In 30 days');
+    });
+  });
+
+  describe('different input formats', () => {
+    it('should accept Date objects', () => {
+      expect(formatSharedDate(new Date(2025, 5, 15))).toBe('Today');
+      expect(formatSharedDate(new Date(2025, 5, 14))).toBe('1 day ago');
+    });
+
+    it('should accept date strings', () => {
+      // Local date string or ISO format
+      const dateStr = new Date(2025, 5, 13).toISOString();
+      expect(formatSharedDate(dateStr)).toBe('2 days ago');
+    });
+
+    it('should accept timestamp numbers', () => {
+      const timestamp = new Date(2025, 5, 17, 10, 0, 0).getTime();
+      expect(formatSharedDate(timestamp)).toBe('In 2 days');
+    });
   });
 });
