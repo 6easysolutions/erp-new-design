@@ -1,3 +1,3 @@
-## 2026-11-06 - Accessible Destructive Modal Pattern
-**Learning:** Shared confirmation modals across templates often rely on non-semantic `<Link to="#">` with primary colors (`btn-primary`) instead of semantic destructive buttons (`btn-danger`), missing dialog semantics (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`). This obscures the critical nature of destructive actions from screen reader users and keyboard navigators, and fails Design.md specifications for destructive buttons.
-**Action:** Always provide dialog accessibility semantics (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`), use semantic `<button type="button">` with `btn-danger` for destructive confirmation actions, and accept optional descriptive props (`title`, `message`, `onDelete`) while retaining backward-compatible default labels.
+## 2024-11-06 - Missing ARIA Labels on Icon-only Action Buttons
+**Learning:** Icon-only action buttons across the `feature-module/setup` section are frequently implemented without `aria-label` attributes (e.g., `SalesMan.jsx` action buttons). While they include a `title` attribute which provides a tooltip, `aria-label` is required for robust screen reader accessibility.
+**Action:** When working on setup pages, ensure that icon-only buttons include an `aria-label` that mirrors their intended action.

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import DOMPurify from "dompurify";
 import { URLS } from "../../../Urls";
+import DOMPurify from 'dompurify';
 import {
   ArrowLeft, Edit, Package, Tag, Layers,
   ShoppingBag, Box, MapPin, Calendar, CheckCircle,
@@ -880,7 +882,7 @@ const ProductView = () => {
                         >
                           {product.short_description ? (
                             <div
-                              dangerouslySetInnerHTML={{ __html: product.short_description }}
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.short_description) }}
                             />
                           ) : (
                             <span style={{ color: "#94a3b8" }}>No short description available.</span>
@@ -917,7 +919,7 @@ const ProductView = () => {
                         >
                           {product.large_description ? (
                             <div
-                              dangerouslySetInnerHTML={{ __html: product.large_description }}
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.large_description) }}
                             />
                           ) : (
                             <span style={{ color: "#94a3b8" }}>No detailed description available.</span>
