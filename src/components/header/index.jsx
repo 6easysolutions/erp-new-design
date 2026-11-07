@@ -367,7 +367,7 @@ const Header = () => {
             </Link>
           </div>
 
-          <Link id="mobile_btn" className="mobile_btn" to="#" onClick={sidebarOverlay}>
+          <Link id="mobile_btn" className="mobile_btn" to="#" onClick={sidebarOverlay} aria-label="Toggle mobile menu">
             <span className="bar-icon">
               <span />
               <span />
@@ -379,7 +379,7 @@ const Header = () => {
             {/* Search - unchanged */}
             <li className="nav-item nav-searchinputs">
               <div className="top-nav-search">
-                <Link to="#" className="responsive-search">
+                <Link to="#" className="responsive-search" aria-label="Toggle search">
                   <i className="feather icon-search" />
                 </Link>
                 <form action="#" className="dropdown">
@@ -665,13 +665,14 @@ const Header = () => {
                 id="btnFullscreen"
                 onClick={() => toggleFullscreen()}
                 className={isFullscreen ? "Exit Fullscreen" : "Go Fullscreen"}
+                aria-label={isFullscreen ? "Exit Fullscreen" : "Go Fullscreen"}
               >
                 <i className="ti ti-maximize"></i>
               </Link>
             </li>
 
             <li className="nav-item nav-item-box">
-              <Link to="/email">
+              <Link to="/email" aria-label="Email">
                 <i className="ti ti-mail"></i>
                 <span className="badge rounded-pill">1</span>
               </Link>
@@ -683,6 +684,7 @@ const Header = () => {
                 to="#"
                 className="dropdown-toggle nav-link"
                 data-bs-toggle="dropdown"
+                aria-label="Notifications"
               >
                 <i className="ti ti-bell"></i>
               </Link>
@@ -771,14 +773,14 @@ const Header = () => {
             </li>
 
             <li className="nav-item nav-item-box">
-              <Link to="/general-settings">
+              <Link to="/general-settings" aria-label="Settings">
                 <i className="feather icon-settings"></i>
               </Link>
             </li>
 
             {/* Profile Dropdown */}
             <li className="nav-item dropdown has-arrow main-drop profile-nav">
-              <Link to="#" className="nav-link userset" data-bs-toggle="dropdown">
+              <Link to="#" className="nav-link userset" data-bs-toggle="dropdown" aria-label="User profile">
                 <span className="user-info p-0">
                   <span className="user-letter">
                     {profileLoading ? (

@@ -79,7 +79,6 @@ const AddStore = () => {
       });
 
       const data = await response.json();
-      console.log('Services API Response:', data); // Debug log
       
       if (response.ok && data.success) {
         // Handle the response structure - services array

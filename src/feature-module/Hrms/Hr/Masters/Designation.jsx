@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { URLS } from "../../../../Urls";
@@ -221,23 +221,23 @@ const Designation = () => {
     navigate("/all-masters");
   };
 
-  // ⚡ Bolt Optimization:
-  // 1. Build a Map for O(1) department lookups instead of doing O(M) departmentsData.find()
-  //    for every designation on every search/render iteration.
-  const departmentMap = useMemo(() => {
-    const map = new Map();
-    departmentsData.forEach((dept) => {
-      map.set(dept.id, dept.name);
-    });
-    return map;
-  }, [departmentsData]);
+  const getDepartmentName = (departmentId) => {
+    const department = departmentsData.find((dept) => dept.id === departmentId);
+    return department ? department.name : "N/A";
+  };
 
-  const getDepartmentName = useCallback(
-    (departmentId) => {
-      return departmentMap.get(departmentId) || "N/A";
-    },
-    [departmentMap]
-  );
+  // Optimization: Memoize filtered data, add early return, and extract toLowerCase() outside the loop
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return designationsData;
+    const searchLower = searchTerm.toLowerCase();
+    return designationsData.filter(
+      (designation) =>
+        designation.name?.toLowerCase().includes(searchLower) ||
+        getDepartmentName(designation.departmentId)
+          ?.toLowerCase()
+          .includes(searchLower)
+    );
+  }, [designationsData, searchTerm, departmentsData]);
 
   // ⚡ Bolt Performance Optimization:
   // 💡 What: Memoize filteredData with early return for empty search, hoist toLowerCase(), and use O(1) department Map lookups.
@@ -258,11 +258,7 @@ const Designation = () => {
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-
-  // ⚡ Bolt: Memoize paginatedData to avoid re-slicing on unrelated renders
-  const paginatedData = useMemo(() => {
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, startIndex, endIndex]);
+  const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
