@@ -90,6 +90,7 @@ const CategoryList = () => {
     body: (_row) =>
     <div className="edit-delete-action d-flex align-items-center">
           <Link
+        aria-label="Edit category"
         className="me-2 p-2 d-flex align-items-center border rounded"
         to="#"
         data-bs-toggle="modal"
@@ -98,6 +99,7 @@ const CategoryList = () => {
             <i className="feather icon-edit"></i>
           </Link>
           <Link
+        aria-label="Delete category"
         className="p-2 d-flex align-items-center border rounded"
         to="#"
         data-bs-toggle="modal" data-bs-target="#delete-modal">
