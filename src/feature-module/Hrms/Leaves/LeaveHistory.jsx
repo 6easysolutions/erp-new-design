@@ -415,15 +415,17 @@ const LeavesAdmin = () => {
   const handleSearch = (value) => {
     // Filter data based on search query
     if (value) {
+      // ⚡ Bolt: extract value.toLowerCase() outside the filter loop to avoid redundant operations
+      const searchLower = value.toLowerCase();
       const filtered = dataSource.filter(
         (leave) =>
           getEmployeeName(leave.employeeId)
             ?.toLowerCase()
-            .includes(value.toLowerCase()) ||
+            .includes(searchLower) ||
           leave.employeeId?.toString().includes(value) ||
           getLeaveTypeLabel(leave.leaveType)
             ?.toLowerCase()
-            .includes(value.toLowerCase())
+            .includes(searchLower)
       );
       setDataSource(filtered);
       setTotalRecords(filtered.length);
