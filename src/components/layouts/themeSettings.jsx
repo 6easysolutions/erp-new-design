@@ -27,7 +27,8 @@ const ThemeSettings = () => {
   const buyNow = () => {
     window.open(
       "https://themeforest.net/item/dreamspos-pos-inventory-management-admin-dashboard-template/38834413?s_rank=13",
-      "_blank"
+      "_blank",
+      "noopener,noreferrer"
     );
   };
 
