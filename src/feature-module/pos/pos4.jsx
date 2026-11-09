@@ -460,16 +460,16 @@ const Pos4 = () => {
    * 💰 CALCULATE ORDER TOTALS
    */
   const calculateTotals = useCallback(() => {
-    const subTotal = cart.reduce((acc, item) => acc + item.total, 0);
-
-    const taxAmount = cart.reduce((acc, item) => {
-      const gstAmount = calculateGstAmount(item.sellingPrice * item.quantity, item.gst);
-      return acc + gstAmount;
-    }, 0);
-
-    const discountAmount = cart.reduce((acc, item) => {
-      return acc + (item.discountAmount * item.quantity);
-    }, 0);
+    // ⚡ Bolt Optimization: Calculate subTotal, taxAmount, and discountAmount in a single O(N) pass
+    // instead of using three separate O(N) array.reduce() iterations to prevent unnecessary redundant loops.
+    let subTotal = 0;
+    let taxAmount = 0;
+    let discountAmount = 0;
+    for (const item of cart) {
+      subTotal += item.total;
+      taxAmount += calculateGstAmount(item.sellingPrice * item.quantity, item.gst);
+      discountAmount += (item.discountAmount * item.quantity);
+    }
 
     // Apply order-level discount
     let finalDiscount = discountAmount;
