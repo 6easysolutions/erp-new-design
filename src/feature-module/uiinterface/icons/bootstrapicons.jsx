@@ -31,6 +31,7 @@ const BootstrapIcons = () => {
                     <Link
                       to="https://icons.getbootstrap.com/"
                       target="_blank"
+                      rel="noopener noreferrer"
                       className="text-primary">
                       
                       click here

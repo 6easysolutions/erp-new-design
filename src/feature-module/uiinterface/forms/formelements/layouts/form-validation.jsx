@@ -38,7 +38,8 @@ const FormValidation = () => {
                     your form. For server side validation{" "}
                     <Link
                       to="https://getbootstrap.com/docs/4.1/components/forms/#server-side"
-                      target="_blank">
+                      target="_blank"
+                      rel="noopener noreferrer">
                       
                       read full documentation
                     </Link>
