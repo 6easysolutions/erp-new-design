@@ -32,6 +32,7 @@ const RemixIcons = () => {
                   <Link
                       to="https://remixicon.com/"
                       target="_blank"
+                      rel="noopener noreferrer"
                       className="text-primary">
                       
                     click here
