@@ -57,18 +57,33 @@ const ActiveSession = () => {
     ]);
 
     // Derived Data
+    // ⚡ Bolt Optimization:
+    // 1) Early return when no search/filter to bypass O(N) array traversals entirely
+    // 2) Hoist searchQuery.trim().toLowerCase() outside inner loop to avoid redundant string operations per element
+    // 3) Evaluate status filtering first to short-circuit before executing string search
+    // 4) Include products in dependency array to ensure cache freshness when product counts update
     const filteredProducts = useMemo(() => {
+        if (!searchQuery && !statusFilter) {
+            return products;
+        }
+
+        const lowerQuery = searchQuery?.toLowerCase() || "";
+
         return products.filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.sku.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = !statusFilter || (
-                (statusFilter === 'Matched' && p.counted !== null && p.counted === p.systemQty) ||
-                (statusFilter === 'Variance' && p.counted !== null && p.counted !== p.systemQty) ||
-                (statusFilter === 'Not_Counted' && p.counted === null)
+            if (statusFilter) {
+                if (statusFilter === 'Matched' && (p.counted === null || p.counted !== p.systemQty)) return false;
+                if (statusFilter === 'Variance' && (p.counted === null || p.counted === p.systemQty)) return false;
+                if (statusFilter === 'Not_Counted' && p.counted !== null) return false;
+            }
+
+            if (!lowerQuery) return true;
+
+            return (
+                (p.name?.toLowerCase() || "").includes(lowerQuery) ||
+                (p.sku?.toLowerCase() || "").includes(lowerQuery)
             );
-            return matchesSearch && matchesStatus;
         });
-    }, [searchQuery, statusFilter]);
+    }, [products, searchQuery, statusFilter]);
 
     // --- ACTIONS ---
     const handleEditClick = (product) => {
