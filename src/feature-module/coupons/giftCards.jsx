@@ -72,7 +72,7 @@ const GiftCards = () => {
           data-bs-toggle="modal"
           data-bs-target="#gift-card-details"
           className="me-2 edit-icon  p-2"
-          to="#">
+          to="#" aria-label="View">
           
               <i className="ti ti-eye" />
             </Link>
@@ -80,7 +80,7 @@ const GiftCards = () => {
           className="me-2 p-2"
           to="#"
           data-bs-toggle="modal"
-          data-bs-target="#edit-units">
+          data-bs-target="#edit-units" aria-label="Edit">
           
               <i className="ti ti-edit" />
             </Link>
@@ -88,7 +88,7 @@ const GiftCards = () => {
           data-bs-toggle="modal"
           data-bs-target="#delete-modal"
           className="p-2"
-          to="#">
+          to="#" aria-label="Delete">
           
               <i className="ti ti-trash" />
             </Link>
