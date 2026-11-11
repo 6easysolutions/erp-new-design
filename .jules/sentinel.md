@@ -1,4 +1,8 @@
-## 2026-07-09 - Client-Side HTML Sanitization for Untrusted API Fields
-**Vulnerability:** In `ProductView.jsx`, product descriptions (`short_description`, `large_description`) fetched from the server API were rendered via `dangerouslySetInnerHTML` without sanitization, exposing the app to Cross-Site Scripting (XSS).
-**Learning:** External sanitization libraries like `dompurify` are not installed in the repository's production dependencies, and installing new dependencies mutates `package.json` / `package-lock.json`. In browser environments, native `DOMParser` provides a robust, zero-dependency mechanism to parse HTML nodes, prune blacklisted elements (`<script>`, `<iframe>`, `<object>`, `<embed>`), remove inline event handlers (`on*`), and block dangerous URI schemes (`javascript:`).
-**Prevention:** Always sanitize any untrusted or API-provided rich-text HTML using `sanitizeHtml` before passing it to `dangerouslySetInnerHTML`.
+## 2026-11-11 - Reverse Tabnabbing Vulnerability
+**Vulnerability:** External links using `target="_blank"` without `rel="noopener noreferrer"`
+**Learning:** Using `target="_blank"` without `rel="noopener noreferrer"` allows the newly opened page to access the original page's `window.opener` object, leading to potential phishing attacks via reverse tabnabbing. This is a common and serious vulnerability.
+**Prevention:** Always include `rel="noopener noreferrer"` when using `target="_blank"` on <a> tags or Links.
+## 2026-11-11 - Reverse Tabnabbing Vulnerability
+**Vulnerability:** External links using `target="_blank"` without `rel="noopener noreferrer"`
+**Learning:** Using `target="_blank"` without `rel="noopener noreferrer"` allows the newly opened page to access the original page's `window.opener` object, leading to potential phishing attacks via reverse tabnabbing. This is a common and serious vulnerability.
+**Prevention:** Always include `rel="noopener noreferrer"` when using `target="_blank"` on <a> tags or Links.

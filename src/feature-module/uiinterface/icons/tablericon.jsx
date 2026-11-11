@@ -35,6 +35,7 @@ const TablerIcon = () => {
               <Link
                     to="https://tabler-icons.io/"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-primary">
                     
                 click here
