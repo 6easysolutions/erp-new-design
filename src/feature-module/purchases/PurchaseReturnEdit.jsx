@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import CommonSelect from "../../components/select/common-select";
 import axios from "axios";
@@ -312,42 +312,43 @@ const PurchaseReturnEdit = () => {
     setSuccessMessage(null);
   };
 
-  // Calculate totals
-  const calculateTotals = () => {
-    const noOfItems = returnItems.length;
-    const totalQty = returnItems.reduce((sum, item) => {
-      return sum + safeToNumber(returnQuantities[item.uniqueKey] || item.return_quantity || 0);
-    }, 0);
-    const totalAmount = returnItems.reduce((sum, item) => {
+  // ⚡ Bolt Performance Optimization: Consolidated derived statistics using useMemo
+  // 💡 What: Replaced multiple separate .reduce() passes with a single for...of loop inside a useMemo.
+  // 🎯 Why: Reduces O(M*N) computational overhead per render cycle by doing a single pass and prevents recalculation on unrelated renders.
+  // 📊 Impact: O(N) single pass instead of multiple O(N) passes; recalculates only when dependencies change.
+  // 🔬 Measurement: Observe reduced CPU time during renders when `returnItems`, `returnQuantities`, or `charges` update.
+  const totals = useMemo(() => {
+    let totalQty = 0;
+    let totalAmount = 0;
+    let totalTax = 0;
+    let totalChargesAmount = 0;
+
+    for (const item of returnItems) {
       const qty = safeToNumber(returnQuantities[item.uniqueKey] || item.return_quantity || 0);
       const rate = safeToNumber(item.purchase_rate);
-      return sum + (qty * rate);
-    }, 0);
-    const totalTax = returnItems.reduce((sum, item) => {
-      const qty = safeToNumber(returnQuantities[item.uniqueKey] || item.return_quantity || 0);
       const originalQty = safeToNumber(item.quantity_stock);
       const taxPerUnit = originalQty > 0 ? safeToNumber(item.total_tax) / originalQty : 0;
-      return sum + (qty * taxPerUnit);
-    }, 0);
-    
-    // Calculate charges
-    const totalChargesAmount = charges.reduce((sum, charge) => 
-      sum + safeToNumber(charge.total_amount), 0
-    );
+
+      totalQty += qty;
+      totalAmount += (qty * rate);
+      totalTax += (qty * taxPerUnit);
+    }
+
+    for (const charge of charges) {
+      totalChargesAmount += safeToNumber(charge.total_amount);
+    }
 
     const finalAmount = totalAmount + totalTax + totalChargesAmount;
 
-    return { 
-      noOfItems, 
-      totalQty, 
-      totalAmount, 
+    return {
+      noOfItems: returnItems.length,
+      totalQty,
+      totalAmount,
       totalTax,
       totalChargesAmount,
-      finalAmount 
+      finalAmount
     };
-  };
-
-  const totals = calculateTotals();
+  }, [returnItems, returnQuantities, charges]);
 
   // Handle Update Purchase Return
   const handleUpdateReturn = async () => {
