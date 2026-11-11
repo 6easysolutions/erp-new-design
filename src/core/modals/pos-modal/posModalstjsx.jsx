@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import TableTopHead from "../../../components/table-top-head";
 import CommonSelect from "../../../components/select/common-select";
 import { barcodeImg3, giftCard, logo, posProduct16, posProduct17, scanImg, user02, user03, user05, user06, user12, user22, user27 } from "../../../utils/imagepath";
+import { safeCalculate } from "../../../utils/calculator";
 
 const PosModals = () => {
   const [selectedTaxType, setSelectedTaxType] = useState(null);
@@ -42,13 +43,9 @@ const PosModals = () => {
 
   const handleSolve = () => {
     try {
-      if (/^[0-9+\-*/%. ]+$/.test(input)) {
-        // eslint-disable-next-line no-new-func
-        const result = new Function("return " + input)();
-        setInput(result.toString());
-      } else {
-        setInput("Error");
-      }
+      // Evaluate arithmetic expression safely without dynamic code execution
+      const result = safeCalculate(input);
+      setInput(result.toString());
     } catch (error) {
       setInput("Error");
     }
