@@ -19,3 +19,7 @@
 ## 2024-11-20 - [Consolidating Derived Array Statistics]
 **Learning:** Performing multiple independent \`.reduce()\` operations over a common array inside functional components leads to unnecessary O(M*N) JS operations per render cycle, which compounds heavily for large datasets.
 **Action:** Consolidate derivations by folding multiple passes into a single \`for...of\` loop wrapped within a single \`useMemo\` block to minimize array traversal overhead and prevent re-evaluation on unrelated renders. Ensure \`useMemo\` is explicitly imported if refactoring existing code without it.
+
+## 2024-11-20 - [Consolidating Derived Array Statistics]
+**Learning:** Performing multiple independent `.reduce()` operations over a common array inside functional components leads to unnecessary O(M*N) JS operations per render cycle, which compounds heavily for large datasets.
+**Action:** Consolidate derivations by folding multiple passes into a single `for...of` loop wrapped within a single `useMemo` block to minimize array traversal overhead and prevent re-evaluation on unrelated renders. Ensure `useMemo` is explicitly imported if refactoring existing code without it.
